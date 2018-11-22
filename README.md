@@ -1,2 +1,2 @@
 # dEBM
-dEBM is a surface melt scheme for paleo-climate applications 
+dEBM is a surface melt scheme to couple ice and climate models in paleo applications 
