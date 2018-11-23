@@ -5,7 +5,7 @@ albedo and latitude as input,
 and calls all the necessary routines to calculate melt rates in mm/day.
 Note that (for simplicity) the calendar is modern and declination for a given date is only approximated in a very simple way 
 (it does not matter too much, but surely this can be improved).
-a full surface mass balance model is on its way and may be published soon.\\ 
+A full surface mass balance model is on its way and may be published soon.\\ 
 please cite: Krebs-Kanzow, U., Gierz, P., and Lohmann, G.:
 Brief communication: An Ice surface melt scheme including the diurnal cycle of solar radiation,
 The Cryosphere Discuss.,
