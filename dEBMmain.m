@@ -37,7 +37,8 @@ q     = q(:,:,:,ones(NY,1));
 PDD   = PDD4(T,3.5);
 
 % melt condition: ice is warm enough to warm to melting point during daytime	
-MC    = (T(:,:,mth,i)>Tmin);            
+% MC    = (T(:,:,mth,i)>Tmin);    %original
+MC    = (T(:,:,mth,:)>Tmin);      % modified by Shan  
 
 % calculate monthly melt rates		
 for i=1:NY
@@ -46,6 +47,7 @@ for i=1:NY
 				       swd(:,:,mth,i),...
 				       PDD(:,:,mth,i),...
 				       hours(:,:,mth,i),...
-				       q(:,:,mth,i),c1,c2,MC);
+                                       q(:,:,mth,i),c1,c2,MC(:,:,mth,i));     % modified by Shan
+% 				       q(:,:,mth,i),c1,c2,MC);                %original				       
    end
 end
