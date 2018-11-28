@@ -1,4 +1,4 @@
-function PDD = PDD(T,stddev)
+function PDD = PDD4(T,stddev)
 % PDD is approximated as described in
 % Calov R and Greve R (2005)
 % Correspondence. A semi-analytical solution for the positive degree-day model
