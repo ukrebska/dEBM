@@ -17,9 +17,8 @@ MODULE DATA_MODULE
   integer, dimension(12) :: days = (/16,45,75,105,136,166,197,228,258,289,319,350/)
   real, parameter :: Lf     = 3.34e5         ! Lf is latent heat of fusion
   real, parameter :: pi     = 3.1415
-  real :: c1, c2
 contains
-  SUBROUTINE CALC_PARAMETER
+  SUBROUTINE CALC_PARAMETER(c1, c2)
     real, intent(out) :: c1, c2
     c1     = (epsa*4*bolz*(T0**3)+beta)
     c2     = (-epsi+epsa*epsi)*bolz*(T0**4)
@@ -29,6 +28,6 @@ END MODULE DATA_MODULE
 
 PROGRAM TEST
     USE DATA_MODULE
-    CALL CALC_PARAMETER
+    CALL CALC_PARAMETER(c1, c2)
     write(*,*) c1,c2
 END PROGRAM TEST
