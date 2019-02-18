@@ -1,8 +1,3 @@
-ad1:
-	ifort -I/usr/local/Cellar/netcdf/4.6.1_4/include -L/usr/local/Cellar/netcdf/4.6.1_4/lib -lnetcdf -lnetcdff ad1.f90 -o ad1
+dEBMmain:
+	ifort -I/usr/local/Cellar/netcdf/4.6.1_4/include -L/usr/local/Cellar/netcdf/4.6.1_4/lib -lnetcdf -lnetcdff MOD_PRE.f90 MOD_DATA.f90 MOD_MAIN.f90 dEBMmain.f90 -o dEBMmain
 
-ad2:
-	ifort -I/usr/local/Cellar/netcdf/4.6.1_4/include -L/usr/local/Cellar/netcdf/4.6.1_4/lib -lnetcdf -lnetcdff ad2.f90 -o ad2
-
-ab:
-	ifort -I/usr/local/Cellar/netcdf/4.6.1_4/include -L/usr/local/Cellar/netcdf/4.6.1_4/lib -lnetcdf -lnetcdff ab.f90 -o ab
