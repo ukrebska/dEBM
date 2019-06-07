@@ -1,0 +1,17 @@
+! The namelist file for the dEMB
+
+& NA
+   xlen                                  = 600                             ! --- x direction
+   ylen                                  = 600                              ! --- y direction
+   tlen                                  = 12                              ! --- time
+   filename_in                           = 'test.nc'
+   precipitation_varname                 = 'precipitation'
+   temperature_varname                   = 'air_temp'
+   shortwave_radiation_downward_varname  = 'swd'
+   mapping_varname                       = 'orog'
+   longitude_varname                     = 'lon'
+   latitude_varname                      = 'lat'
+   time_varname                          = 'time'
+   stddev                                =  3.5
+   obliquity							 =  23.7
+/
