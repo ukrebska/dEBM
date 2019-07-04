@@ -18,7 +18,7 @@ contains
 
   SUBROUTINE READ_NAMELIST
 
-    namelist /na/ xlen, ylen,tlen,&
+    namelist /debm/ xlen, ylen,tlen,&
                     &filename_in,&
                     &precipitation_varname,&
                     &temperature_varname,&
@@ -28,8 +28,8 @@ contains
                     &stddev, obliquity
 
     ! read information from namelist
-    open(10, file="namelist_pre_new.txt", status='old' )
-    read(10, nml=na)
+    open(10, file="namelist.debm", status='old' )
+    read(10, nml=debm)
 
    ! write(*,*) obliquity
 

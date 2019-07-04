@@ -23,22 +23,22 @@ MODULE MOD_DATA
   ! Define parameters
   real, parameter :: slim   = 7.       ! melt/refreeze threshold
   real, parameter :: Ans    = .85     ! Albedo for new snow
-  real, parameter :: Ads    = .8      ! Albedo for dry snow
-  real, parameter :: Aws    = .65     ! Albedo for wet snow
-  real, parameter :: Ai     = .45     ! Albedo for ice
-  real, parameter :: taucs  = .7;
-  real, parameter :: tauoc  = .3;
-  real, parameter :: epsacs = .74     ! emissivity of atm for sunny days
+  real, parameter :: Ads    = .75      ! Albedo for dry snow
+  real, parameter :: Aws    = .6     ! Albedo for wet snow
+  real, parameter :: Ai     = .5     ! Albedo for ice
+  real, parameter :: taucs  = .8
+  real, parameter :: tauoc  = .3
+  real, parameter :: epsacs = .7     ! emissivity of atm for sunny days
   real, parameter :: epsaoc = .95     ! emissivity of atm for overcasted days
   real, parameter :: epsi   = .95     ! emissivity of ice
   real, parameter :: beta   = 10.     ! turbulent heat transfer coeff
   real, parameter :: bolz   = 5.67e-8 ! Stefan-Boltzmann constant
   real, parameter :: T0     = 273.15  ! melt point in K
   real, parameter :: Tmin   = -6.5    ! background melt condition
-  real, parameter :: pi     = 3.1415
-  integer, dimension(12) :: mth = (/1,2,3,4,5,6,7,8,9,10,11,12/)
-  integer, dimension(12) :: mth_days = (/31,28,31,30,31,30,31,31,30,31,30,31/)
-  integer, dimension(12) :: days = (/16,45,75,105,136,166,197,228,258,289,319,350/)
+  real, parameter :: pi     = 3.141592653
+  real, dimension(12) :: mth = (/1,2,3,4,5,6,7,8,9,10,11,12/)
+  real, dimension(12) :: mth_days = (/31,28,31,30,31,30,31,31,30,31,30,31/)
+  real, dimension(12) :: days = (/16,45,75,105,136,166,197,228,258,289,319,350/)
   integer, parameter :: mlen   = 12
   integer :: nlen
   real :: c1cs, c2cs, c1oc, c2oc
@@ -52,10 +52,10 @@ contains
   ! ************************************************************************
   real, intent(out) :: c1cs, c2cs, c1oc, c2oc
   ! c1 and c2 for clear sky conditions
-  c1cs     = (epsacs*4*bolz*(T0**3)+beta)
+  c1cs     = (epsi*epsacs*4*bolz*(T0**3)+beta)
   c2cs     = (-epsi+epsacs*epsi)*bolz*(T0**4)
   ! c1 and c2 for completely overcast conditions
-  c1oc     = (epsaoc*4*bolz*(T0**3)+beta)
+  c1oc     = (epsi*epsaoc*4*bolz*(T0**3)+beta)
   c2oc     = (-epsi+epsaoc*epsi)*bolz*(T0**4)
   END SUBROUTINE CALC_PARAMETER
 

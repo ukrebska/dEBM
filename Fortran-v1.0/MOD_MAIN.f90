@@ -39,11 +39,14 @@ SUBROUTINE dEBM_decl(days_in, obl_in, DECL_out)
   ! *   DECL          : declinity                                          *
   ! ************************************************************************
 
-  integer, intent(in) :: days_in
+  real, intent(in) :: days_in
   real, intent(in) :: obl_in
   real, intent(out) :: DECL_out
 
-  DECL_out = obl_in * sin(pi/180*360/365*(days_in-79))   ! 79 is the number of days since New Year for the spring equinox
+  DECL_out = obl_in * sin(pi/180.*360./365.*(days_in-79.))   ! 79 is the number of days since New Year for the spring equinox
+  ! write(*,*) "obl_in", obl_in
+  ! write(*,*) "days_in", days_in
+  ! write(*,*) "sin(pi/180.*360./365.*(days_in-79.))", sin(pi/180.*360./365.*(days_in-79.))
 
 END SUBROUTINE dEBM_decl
 
@@ -88,6 +91,7 @@ SUBROUTINE dEBM_sunny_hours_c(mth_in, elev_in, lat_in, obl_in, HOURS_OUT, Q_OUT,
 
   ! decl
   CALL dEBM_decl(days(mth_in), obl_in, decl(1,1))
+
   do i = 1, xlen
       do j = 1, ylen
           decl(i, j) = decl(1,1)
@@ -98,25 +102,25 @@ SUBROUTINE dEBM_sunny_hours_c(mth_in, elev_in, lat_in, obl_in, HOURS_OUT, Q_OUT,
 
   ! elev
   elev1(:,:)       = elev_in*pi/180.
-! write(*,*) "elev", elev1(376,240)
+! write(*,*) "elev", elev1(448, 155)
 
 ! ! elev new
   ! elev1 = (decl + (90. - lat_in))*pi/180.
-!   ! write(*,*) "elev1", elev1(376,240)
+!   ! write(*,*) "elev1", elev1(448, 155)
 !   ! write(*,*) "elev_in", elev_in
 
   ! !products of sin(lat)*sin(decl) and cos(lat)*cos(decl)  is needed more than once
   sinphisind       = sin(pi/180*lat_in)*sin(pi/180*decl)
   cosphicosd       = cos(pi/180*lat_in)*cos(pi/180*decl)
-  ! write(*,*) "sinphisind", sinphisind(376,240)
-  ! write(*,*) "cosphicosd", cosphicosd(376,240)
+  ! write(*,*) "sinphisind", sinphisind(448, 155)
+  ! write(*,*) "cosphicosd", cosphicosd(448, 155)
 
   ! hourangle of sun rise and factor which relates solar flux density and
   ! daily insolation SW
    ! ha_0             = real(acos(-sinphisind/cosphicosd))
    ! sol_flux_fact_0  = (sinphisind*ha_0+cosphicosd*sin(ha_0))/pi
-   ! write(*,*) "ha_0", ha_0(376,240)
-   ! write(*,*) "sol_flux_fact_0", sol_flux_fact_0(376,240)
+   ! write(*,*) "ha_0", ha_0(448, 155)
+   ! write(*,*) "sol_flux_fact_0", sol_flux_fact_0(448, 155)
 
    ! ha_0 = 0.
    ! sol_flux_fact_0  = 0.
@@ -124,12 +128,12 @@ SUBROUTINE dEBM_sunny_hours_c(mth_in, elev_in, lat_in, obl_in, HOURS_OUT, Q_OUT,
    ha_0 = -sinphisind/cosphicosd
      where (ha_0 > 1.) ha_0 = 1.
      where (ha_0 < -1.) ha_0 = -1.
-   ha_0 = acos(ha_0)
+     ha_0 = acos(ha_0)
   sol_flux_fact_0  = (sinphisind*ha_0+cosphicosd*sin(ha_0))/pi
    ! end where
-   ! write(*,*) "-sinphisind/cosphicosd", -sinphisind(376,240)/cosphicosd(376,240)
-   ! write(*,*) "ha_0", ha_0(376,240)
-   ! write(*,*) "sol_flux_fact_0", sol_flux_fact_0(376,240)
+   ! write(*,*) "-sinphisind/cosphicosd", -sinphisind(448, 155)/cosphicosd(448, 155)
+   ! write(*,*) "ha_0", ha_0(448, 155)
+   ! write(*,*) "sol_flux_fact_0", sol_flux_fact_0(448, 155)
 
 
   ! hourangle of sun rising above elev
@@ -138,37 +142,37 @@ SUBROUTINE dEBM_sunny_hours_c(mth_in, elev_in, lat_in, obl_in, HOURS_OUT, Q_OUT,
     where (ha_elev < -1.) elev1 = -1.
   ha_elev = acos(ha_elev)
     ! write(*,*) "(sin(elev1))", (sin(elev1))
-    ! write(*,*) "(sin(elev1)-sinphisind)", (sin(elev1)-sinphisind(376,240))
-    ! write(*,*) "(sin(elev1)-sinphisind)/cosphicosd", (sin(elev1)-sinphisind(376,240))/cosphicosd(376,240)
-    ! write(*,*) "acos((sin(elev1)-sinphisind)/cosphicosd)", acos((sin(elev1)-sinphisind(376,240))/cosphicosd(376,240))
+    ! write(*,*) "(sin(elev1)-sinphisind)", (sin(elev1)-sinphisind(448, 155))
+    ! write(*,*) "(sin(elev1)-sinphisind)/cosphicosd", (sin(elev1)-sinphisind(448, 155))/cosphicosd(448, 155)
+    ! write(*,*) "acos((sin(elev1)-sinphisind)/cosphicosd)", acos((sin(elev1)-sinphisind(448, 155))/cosphicosd(448, 155))
     ! ha_elev(:,:)           = acos(0.8)
-    ! write(*,*) "ha_elev0", ha_elev0(376,240)
-    ! write(*,*) "ha_elev", ha_elev(376,240)
+    ! write(*,*) "ha_elev0", ha_elev0(448, 155)
+    ! write(*,*) "ha_elev", ha_elev(448, 155)
     ! write(*,*) "ha_elev", maxval(ha_elev)
     ! write(*,*) "ha_elev", minval(ha_elev)
 
 
   ! duration of melt period in hours
   HOURS_OUT         = ha_elev*24/pi
-  ! write(*,*) "HOURS_OUT", HOURS_OUT(376,240)
+  ! write(*,*) "HOURS_OUT", HOURS_OUT(448, 155)
   ! write(*,*) "HOURS_OUT", minval(HOURS_OUT)
 
   ! proportion of daily insolation which is effective during melt period
   sol_flux_fact_e   = (sinphisind*ha_elev+cosphicosd*sin(ha_elev))/pi
-  Q_OUT             = sol_flux_fact_e/sol_flux_fact_0
+  ! Q_OUT             = sol_flux_fact_e/sol_flux_fact_0
 
-  ! where (sol_flux_fact_0==0.)
-  !   Q_OUT = 0.
-  ! elsewhere
-  !   Q_OUT = sol_flux_fact_e/sol_flux_fact_0
-  ! end where
+  where (sol_flux_fact_0==0.)
+    Q_OUT = 0.
+  elsewhere
+    Q_OUT = sol_flux_fact_e/sol_flux_fact_0
+  end where
 
-  ! write(*,*) "sol_flux_fact_e", sol_flux_fact_e(376,240)
-  ! write(*,*) "sol_flux_fact_0", sol_flux_fact_0(376,240)
-  ! write(*,*) "Q_OUT", Q_OUT(376,240)
+  ! write(*,*) "sol_flux_fact_e", sol_flux_fact_e(448, 155)
+  ! write(*,*) "sol_flux_fact_0", sol_flux_fact_0(448, 155)
+  ! write(*,*) "Q_OUT", Q_OUT(448, 155)
 
   FLUXFAC_OUT       = sol_flux_fact_0
-  ! write(*,*) "FLUXFAC_OUT", FLUXFAC_OUT(376,240)
+  ! write(*,*) "FLUXFAC_OUT", FLUXFAC_OUT(448, 155)
 
 END SUBROUTINE dEBM_sunny_hours_c
 
@@ -202,13 +206,15 @@ END SUBROUTINE PDD4
 
 
 
-SUBROUTINE dEBMmodel_cloud(A_in, swd_in, Temp_in, PDD_in, rain_in, hours_in, q_in, MC_in, fluxfac_in, taucs_in, tauoc_in, MELT_OUT, REFR_OUT)
+SUBROUTINE dEBMmodel_cloud(A_in, Aoc_in, swd_in, Temp_in, PDD_in, rain_in, hours_in, q_in, c1cs_in, c2cs_in, c1oc_in, c2oc_in, MC_in, fluxfac_in, taucs_in, tauoc_in, MELT_OUT, REFR_OUT)
+! SUBROUTINE dEBMmodel_cloud(A_in, Aoc_in, swd_in, Temp_in, PDD_in, rain_in, hours_in, q_in, fluxfac_in, taucs_in, tauoc_in, MELT_OUT, REFR_OUT, LWD_EST_OUT,TAU_OUT)
   ! ************************************************************************
   ! * calculates surface melt and refreeze                                 *
   ! ************************************************************************
   ! * INPUT: A,swd,T,PDD,rain,hours,q,MC,fluxfac                           *
   ! *   A             : Albedo                                             *
-  ! *   swd           : daily short wave insolation at the surfacet        *
+  ! *   Aoc             : Albedo                                             *
+! *   swd           : daily short wave insolation at the surfacet        *
   ! *   PDD           : an approx. of melt-period temperature              *
   ! *   rain          : liquid precipitation                               *
   ! *   hours         : duration of melt period in hours                   *
@@ -219,110 +225,137 @@ SUBROUTINE dEBMmodel_cloud(A_in, swd_in, Temp_in, PDD_in, rain_in, hours_in, q_i
   ! * OUTPUT: MELT, REFR                                                   *
   ! *   MELT          : the melt rate (mm/day)                             *
   ! *   REFR          : refreeze                                           *
+  ! *   LWD_EST_OUT          : refreeze                                           *
+  ! *   TAU_OUT          : refreeze                                           *
   ! ************************************************************************
 
-  real, intent(in) :: A_in, taucs_in, tauoc_in
+  real, intent(in) :: A_in, Aoc_in, taucs_in, tauoc_in
+  real, intent(in) :: c1cs_in, c2cs_in, c1oc_in, c2oc_in
   real, intent(in), dimension(:,:)    :: swd_in, Temp_in, PDD_in, rain_in, hours_in, q_in, fluxfac_in
   logical, intent(in), dimension(:,:) :: MC_in
   real, intent(out), dimension(:,:)   :: MELT_OUT, REFR_OUT
+ ! real, intent(out), dimension(:,:)   ::  LWD_EST_OUT,TAU_OUT
 
   real, parameter :: Lf  = 3.34e5         ! Lf is latent heat of fusion
-  real, parameter :: S0  = 1330                    ! solar constant
-  real, allocatable, dimension(:,:)   :: Scs, Soc, Scsr, gwi
-  real, allocatable, dimension(:,:)   :: meltcs, meltFDcs, meltFDoc, MELT_cs, MELT_oc
+  real, parameter :: S0  = 1330.                    ! solar constant
+  real, allocatable, dimension(:,:)   :: Scs, Soc, Scsr, Socr, gwi
+  real, allocatable, dimension(:,:)   :: meltcs, meltoc, refroc, refrcs, meltFDcs, meltFDoc
 
   allocate (Scs(xlen,ylen))
   allocate (Soc(xlen,ylen))
   allocate (Scsr(xlen,ylen))
+  allocate (Socr(xlen,ylen))
   allocate (gwi(xlen,ylen))
   allocate (meltcs(xlen,ylen))
+  allocate (meltoc(xlen,ylen))
+  allocate (refrcs(xlen,ylen))
+  allocate (refroc(xlen,ylen))
   allocate (meltFDcs(xlen,ylen))
   allocate (meltFDoc(xlen,ylen))
-  allocate (MELT_cs(xlen,ylen))
-  allocate (MELT_oc(xlen,ylen))
 
   Scs = fluxfac_in*S0*taucs_in        ! expected sunshine for clear sky conditions
   Soc = fluxfac_in*S0*tauoc_in        ! expected sunshine for completely overcast conditions
-  ! write(*,*) "fluxfac_in", fluxfac_in(376,240)
-  ! write(*,*) "Scs", Scs(376,240)
-  ! write(*,*) "Soc", Soc(376,240)
+  ! write(*,*) "fluxfac_in", fluxfac_in(448, 155)
+  ! write(*,*) "Scs", Scs(448, 155)
+  ! write(*,*) "Soc", Soc(448, 155)
+  ! ?????
+  ! why use Scsr, the maximum of real and expected sunshine, rather than real
+  Scsr = max(Scs,swd_in)
+  Socr = min(Soc,swd_in);
+  ! ! write(*,*) "swd_in", swd_in(448, 155)
+  ! write(*,*) "Scsr", Scsr(448, 155)
+  ! write(*,*) "Socr", Socr(448, 155)
 
   ! good weather index
   ! percentage of days in a month, which has clear sky conditions
   ! (there is just overcast or clear conditions, nothing inbetween)
-  gwi = Scs*0
-  where (Scs>50)
-    gwi = min(1., (swd_in - Soc)/(Scs - Soc))
+  gwi = Scs*0. + 1.
+  ! TAU_OUT = Scs*asin(1.2)
+  where (swd_in>50.)
+    ! TAU_OUT = swd_in./(fluxfac_in*S0);
+    gwi = max(0., min(1., (swd_in - Soc)/(Scs - Soc)))
   end where
-  ! write(*,*) "gwi", gwi(376,240)
+  ! write(*,*) "swd_in", swd_in(448, 155)
+  ! ! write(*,*) "swd_in - Soc", (swd_in(448, 155) - Soc(448, 155))
+  ! ! write(*,*) "Scs - Soc", (Scs(448, 155) - Soc(448, 155))
+  ! write(*,*) "gwi", gwi(448, 155)
 !
-  ! ?????
-  ! why use Scsr, the maximum of real and expected sunshine, rather than real
-  Scsr = max(Scs,swd_in)
-  ! write(*,*) "swd_in", swd_in(376,240)
-  ! write(*,*) "Scsr", Scsr(376,240)
-
   ! 0.05 is penetration
   meltcs = 0.
-  where (MC_in) meltcs   = (((1-A_in)*Scsr*24*q_in)+(c2cs+c1cs*PDD_in)*hours_in)/Lf*60*60
+  where (MC_in) meltcs   = (((1-A_in)*Scsr*24.*q_in)+(c2cs+c1cs*PDD_in)*hours_in)/Lf*60.*60.
   ! write(*,*) "A_in", A_in
-  ! write(*,*) "Scsr", Scsr(376,240)
-  ! write(*,*) "q_in", q_in(376,240)
-  ! write(*,*) "PDD_in", PDD_in(376,240)
-  ! write(*,*) "hours_in", hours_in(376,240)
-  ! write(*,*) "MC_in", MC_in(376,240)
-  ! write(*,*) "meltcs", meltcs(376,240)
+  ! write(*,*) "Scsr", Scsr(448, 155)
+  ! write(*,*) "q_in", q_in(448, 155)
+  ! write(*,*) "PDD_in", PDD_in(448, 155)
+  ! write(*,*) "hours_in", hours_in(448, 155)
+  ! ! write(*,*) "MC_in", MC_in(448, 155)
+  ! write(*,*) "meltcs", meltcs(448, 155)
 
+  ! meltFDcs
   meltFDcs = 0.
-  where (MC_in) meltFDcs = ((1-A_in)*Scsr+(c2cs+c1cs*Temp_in))/Lf*24*60*60
+  where (MC_in) meltFDcs = ((1-A_in)*Scsr+(c2cs+c1cs*Temp_in))/Lf*24.*60.*60.
+  ! meltFDoc
   meltFDoc = 0.
-  where (MC_in) meltFDoc = ((1-A_in-.05)*Soc+(c2oc+(c1oc)*Temp_in))/Lf*24*60*60        ! we don't distinguish night and day here...
-  ! MELT_cs
-  where (isnan(meltcs))
-    MELT_cs = 0.
-  elsewhere
-    MELT_cs = gwi*max(0.,meltcs)
-  end where
-  ! MELT_oc
-  where (isnan(gwi*(meltFDcs-meltcs)+(1-gwi)*meltFDoc))
-    MELT_oc = 0.
-  elsewhere
-    MELT_oc = max(0.,gwi*(meltFDcs-meltcs)+(1-gwi)*meltFDoc)
-  end where
-  !
-  MELT_OUT = MELT_cs + MELT_oc
-  ! write(*,*) "MELT_cs", MELT_cs(376,240)
-  ! write(*,*) "MELT_oc", MELT_oc(376,240)
+  where (MC_in) meltFDoc = ((1-Aoc_in)*Socr+(c2oc+(c1oc)*Temp_in))/Lf*24.*60.*60.        ! we don't distinguish night and day here...
 
-  ! write(*,*) "MC_in", MC_in(376,240)
-  ! write(*,*) "meltcs", meltcs(376,240)
-  ! write(*,*) "meltFDcs", meltFDcs(376,240)
-  ! write(*,*) "meltFDoc", meltFDoc(376,240)
-  ! write(*,*) "MELT_OUT", MELT_OUT(376,240)
+  refroc = max(-meltFDoc, 0.)
+  meltoc = max( meltFDoc, 0.)
+  meltcs = max(0., max(meltFDcs, meltcs))
+  refrcs = max(0., meltcs - meltFDcs)
+
+  ! MELT_OUT
+  MELT_OUT = gwi*meltcs + (1.-gwi)*meltoc;
+  ! REFR_OUT
+  REFR_OUT = min(MELT_OUT + rain_in, (gwi*refrcs + (1.-gwi)*refroc))
+  ! ! LWD_EST_OUT
+  ! LWD_EST_OUT = bolz * (gwi*epsacs + (1-gwi)*epsaoc) * ((T+T0)**4.)
+
+  ! ! MELT_cs
+  ! where (isnan(meltcs))
+  !   MELT_cs = 0.
+  ! elsewhere
+  !   MELT_cs = gwi*max(0.,meltcs)
+  ! end where
+  ! ! MELT_oc
+  ! where (isnan(gwi*(meltFDcs-meltcs)+(1-gwi)*meltFDoc))
+  !   MELT_oc = 0.
+  ! elsewhere
+  !   MELT_oc = max(0.,gwi*(meltFDcs-meltcs)+(1-gwi)*meltFDoc)
+  ! end where
+  ! !
+  ! MELT_OUT = MELT_cs + MELT_oc
+  ! write(*,*) "MELT_cs", MELT_cs(448, 155)
+  ! write(*,*) "MELT_oc", MELT_oc(448, 155)
+
+  ! write(*,*) "MC_in", MC_in(448, 155)
+  ! write(*,*) "meltcs", meltcs(448, 155)
+  ! write(*,*) "meltFDcs", meltFDcs(448, 155)
+  ! write(*,*) "meltFDoc", meltFDoc(448, 155)
+  ! write(*,*) "MELT_OUT", MELT_OUT(448, 155)
 
   ! REFR_OUT = max(0.,min(MELT_OUT + rain_in, gwi*(meltcs-meltFDcs)))
-  where (isnan(gwi*(meltcs-meltFDcs)))
-    REFR_OUT = MELT_OUT + rain_in
-  elsewhere (isnan(MELT_OUT + rain_in))
-    REFR_OUT = gwi*(meltcs-meltFDcs)
-  elsewhere
-    REFR_OUT = min(MELT_OUT + rain_in, gwi*(meltcs-meltFDcs))
-  end where
-  !
-  where (isnan(REFR_OUT))
-    REFR_OUT = 0.
-  elsewhere
-    REFR_OUT = max(0.,REFR_OUT)
-  end where
+  ! where (isnan(gwi*(meltcs-meltFDcs)))
+  !   REFR_OUT = MELT_OUT + rain_in
+  ! elsewhere (isnan(MELT_OUT + rain_in))
+  !   REFR_OUT = gwi*(meltcs-meltFDcs)
+  ! elsewhere
+  !   REFR_OUT = min(MELT_OUT + rain_in, gwi*(meltcs-meltFDcs))
+  ! end where
+  ! !
+  ! where (isnan(REFR_OUT))
+  !   REFR_OUT = 0.
+  ! elsewhere
+  !   REFR_OUT = max(0.,REFR_OUT)
+  ! end where
 
-  ! write(*,*) "REFR_OUT", REFR_OUT(376,240)
+  ! write(*,*) "REFR_OUT", REFR_OUT(448, 155)
 
 END SUBROUTINE dEBMmodel_cloud
 
 
 
 
-SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, mask_in, SNH_OUT, SMB_OUT, MELT_OUT, ACC_OUT, REFR_OUT, A_OUT)
+SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, mask_in, obl_in, SNH_OUT, SMB_OUT, MELT_OUT, ACC_OUT, REFR_OUT, A_OUT)
   ! ************************************************************************
   ! * This SUBTROUTINE calculates the surface mass blance                  *
   ! ************************************************************************
@@ -336,6 +369,8 @@ SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, 
   ! *   lastyear      : snow height at the end of last summer              *
   ! *   lat           : latitude                                           *
   ! *   mask          : mapping                                            *
+  ! *   obl          : obliquity                                            *
+  ! *   lhf          :                                             *
   ! ************************************************************************
   ! * OUTPUT: SNH, SMB, MELT, ACC, REFR, A                                 *
   ! *   SNH           : snow height                                        *
@@ -349,219 +384,246 @@ SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, 
   real, intent(in), dimension(:,:,:) :: tempm_in, radm_in, ppm_in, lat_in
   real, intent(in), dimension(:,:)   :: tmpSNH_in, lastyear_in
   logical, intent(in), dimension(:,:,:) :: mask_in
+  real, intent(in) :: obl_in
   real, intent(out), dimension(:,:,:) :: SNH_OUT, SMB_OUT, MELT_OUT, ACC_OUT, REFR_OUT, A_OUT
 
   integer :: k
-  real, allocatable, dimension(:,:,:) :: hoursns, qns, fluxfacns,&
+  real, allocatable, dimension(:,:) :: hoursns, qns, fluxfacns,&
                                           &hoursds, qds, fluxfacds,&
                                           &hoursws, qws, fluxfacws,&
                                           &hoursi, qi, fluxfaci,&
                                           &PDD0
-  real, allocatable, dimension(:,:,:) :: solid0, solid, rain, snow
-  logical, allocatable, dimension(:,:,:) :: tempmask
-  real, allocatable, dimension(:,:,:) :: MELTns, PREFRns
-  real, allocatable, dimension(:,:,:) :: MELTds, PREFRds
-  real, allocatable, dimension(:,:,:) :: MELTws, PREFRws
-  real, allocatable, dimension(:,:,:) :: MELTi, PREFRi
-  logical, allocatable, dimension(:,:,:) :: new_snow, dry_snow, wet_snow
-  real, allocatable, dimension(:,:,:) :: melt_snow, ice_melt_fract
-  real, allocatable, dimension(:,:,:) :: Asnow
+  real, allocatable, dimension(:,:) :: solid0, solid, rain, snow
+  logical, allocatable, dimension(:,:) :: tempmask
+  real, allocatable, dimension(:,:) :: MELTns, PREFRns
+  real, allocatable, dimension(:,:) :: MELTds, PREFRds
+  real, allocatable, dimension(:,:) :: MELTws, PREFRws
+  real, allocatable, dimension(:,:) :: MELTi, PREFRi
+  logical, allocatable, dimension(:,:) :: old_wet, new_snow, dry_snow, wet_snow
+  real, allocatable, dimension(:,:) :: melt_snow, ice_melt, ice_melt_fract
+  real, allocatable, dimension(:,:) :: Asnow
   real, allocatable, dimension(:,:)   :: tmpSNH, lastyear
 
   !
-  allocate (hoursns(xlen,ylen,mlen))
-  allocate (qns(xlen,ylen,mlen))
-  allocate (fluxfacns(xlen,ylen,mlen))
+  allocate (hoursns(xlen,ylen))
+  allocate (qns(xlen,ylen))
+  allocate (fluxfacns(xlen,ylen))
   !
-  allocate (hoursds(xlen,ylen,mlen))
-  allocate (qds(xlen,ylen,mlen))
-  allocate (fluxfacds(xlen,ylen,mlen))
+  allocate (hoursds(xlen,ylen))
+  allocate (qds(xlen,ylen))
+  allocate (fluxfacds(xlen,ylen))
   !
-  allocate (hoursws(xlen,ylen,mlen))
-  allocate (qws(xlen,ylen,mlen))
-  allocate (fluxfacws(xlen,ylen,mlen))
+  allocate (hoursws(xlen,ylen))
+  allocate (qws(xlen,ylen))
+  allocate (fluxfacws(xlen,ylen))
   !
-  allocate (hoursi(xlen,ylen,mlen))
-  allocate (qi(xlen,ylen,mlen))
-  allocate (fluxfaci(xlen,ylen,mlen))
+  allocate (hoursi(xlen,ylen))
+  allocate (qi(xlen,ylen))
+  allocate (fluxfaci(xlen,ylen))
   !
-  allocate (PDD0(xlen,ylen,mlen))
+  allocate (PDD0(xlen,ylen))
   !
-  allocate (solid0(xlen,ylen,mlen))
-  allocate (solid(xlen,ylen,mlen))
-  allocate (rain(xlen,ylen,mlen))
-  allocate (snow(xlen,ylen,mlen))
+  allocate (solid0(xlen,ylen))
+  allocate (solid(xlen,ylen))
+  allocate (rain(xlen,ylen))
+  allocate (snow(xlen,ylen))
   !
-  allocate (tempmask(xlen,ylen,mlen))
+  allocate (tempmask(xlen,ylen))
   !
-  allocate (MELTns(xlen,ylen,mlen))
-  allocate (PREFRns(xlen,ylen,mlen))
-  allocate (MELTds(xlen,ylen,mlen))
-  allocate (PREFRds(xlen,ylen,mlen))
-  allocate (MELTws(xlen,ylen,mlen))
-  allocate (PREFRws(xlen,ylen,mlen))
-  allocate (MELTi(xlen,ylen,mlen))
-  allocate (PREFRi(xlen,ylen,mlen))
+  allocate (MELTns(xlen,ylen))
+  allocate (PREFRns(xlen,ylen))
+  allocate (MELTds(xlen,ylen))
+  allocate (PREFRds(xlen,ylen))
+  allocate (MELTws(xlen,ylen))
+  allocate (PREFRws(xlen,ylen))
+  allocate (MELTi(xlen,ylen))
+  allocate (PREFRi(xlen,ylen))
   !
-  allocate (new_snow(xlen,ylen,mlen))
-  allocate (dry_snow(xlen,ylen,mlen))
-  allocate (wet_snow(xlen,ylen,mlen))
-  allocate (melt_snow(xlen,ylen,mlen))
+  allocate (old_wet(xlen,ylen))
+  allocate (new_snow(xlen,ylen))
+  allocate (dry_snow(xlen,ylen))
+  allocate (wet_snow(xlen,ylen))
+  allocate (melt_snow(xlen,ylen))
   !
-  allocate (ice_melt_fract(xlen,ylen,mlen))
-  allocate (Asnow(xlen,ylen,mlen))
+  allocate (ice_melt(xlen,ylen))
+  allocate (ice_melt_fract(xlen,ylen))
+  allocate (Asnow(xlen,ylen))
   allocate (tmpSNH(xlen,ylen))
   allocate (lastyear(xlen,ylen))
 
   ! write(*,*) "calculating parameters c1 anc c2..."
   CALL CALC_PARAMETER(c1cs, c2cs, c1oc, c2oc)
-  ! write(*,*) c1cs, c2cs, c1oc, c2oc
+  ! write(*,*) "c1cs, c2cs, c1oc, c2oc = ",c1cs, c2cs, c1oc, c2oc
 
   ! write(*,*) "calculating angles...."
   CALL CALC_ANGLES(winkelns, winkelds, winkelws, winkeli)
-  ! write(*,*) winkelns, winkelds, winkelws, winkeli
+  ! write(*,*) "winkelns, winkelds, winkelws, winkeli",winkelns, winkelds, winkelws, winkeli
 
   !
-  SMB_OUT    = tempm_in*0
-  SNH_OUT    = tempm_in*0
-  ! MELT_OUT   = tempm_in*0
-  ! ACC_OUT    = tempm_in*0
-  ! REFR_OUT   = tempm_in*0
-  A_OUT      = tempm_in*0
+  SMB_OUT    = tempm_in*0.
+  SNH_OUT    = tempm_in*0.
+  MELT_OUT   = tempm_in*0.
+  ACC_OUT    = tempm_in*0.
+  REFR_OUT   = tempm_in*0.
+  A_OUT      = tempm_in*0.
+  wet_snow(:,:) = .FALSE.
 
   tmpSNH = tmpSNH_in
   lastyear = lastyear_in
 
   do k = 1, 12
 
-    write(*,*) "calculates month",k
+    ! write(*,*) "calculates month",k
 
     ! write(*,*) "calculates the time that the sun is above a certain elevation angle...."
-    CALL dEBM_sunny_hours_c(k, winkelns, lat_in(:,:,k), obliquity, hoursns(:,:,k), qns(:,:,k), fluxfacns(:,:,k))
-    CALL dEBM_sunny_hours_c(k, winkelds, lat_in(:,:,k), obliquity, hoursds(:,:,k), qds(:,:,k), fluxfacds(:,:,k))
-    CALL dEBM_sunny_hours_c(k, winkelws, lat_in(:,:,k), obliquity, hoursws(:,:,k), qws(:,:,k), fluxfacws(:,:,k))
-    CALL dEBM_sunny_hours_c(k, winkeli, lat_in(:,:,k), obliquity, hoursi(:,:,k), qi(:,:,k), fluxfaci(:,:,k))
+    CALL dEBM_sunny_hours_c(k, winkelns, lat_in(:,:,k), obliquity, hoursns, qns, fluxfacns)
+    CALL dEBM_sunny_hours_c(k, winkelds, lat_in(:,:,k), obliquity, hoursds, qds, fluxfacds)
+    CALL dEBM_sunny_hours_c(k, winkelws, lat_in(:,:,k), obliquity, hoursws, qws, fluxfacws)
+    CALL dEBM_sunny_hours_c(k, winkeli, lat_in(:,:,k), obliquity, hoursi, qi, fluxfaci)
 
-    ! write(*,*) k, " hoursns", hoursns(376,240,k)
-    ! write(*,*) k, " qns ", qns(376,240,k)
-    ! write(*,*) k, " fluxfacns ", fluxfacns(376,240,k)
+    ! write(*,*) k, " hoursns", hoursns(448, 155,k)
+    ! write(*,*) k, " qns ", qns(448, 155,k)
+    ! write(*,*) k, " fluxfacns ", fluxfacns(448, 155,k)
 
     ! to determine the fraction of solid and liquid water in precipitation
-    solid0(:,:,k) = 0.
-    where (tempm_in(:,:,k)>-slim) solid0(:,:,k) = sin(tempm_in(:,:,k)/2/slim*pi)+1
-    solid0(:,:,k) = 1-.5*solid0(:,:,k)
-    where (tempm_in(:,:,k)<slim) solid(:,:,k) = solid0(:,:,k)
-    solid(:,:,k) = max(0.,solid(:,:,k))
+    solid0 = 0.
+    where (tempm_in(:,:,k)>-slim) solid0 = sin(tempm_in(:,:,k)/2./slim*pi)+1.
+    solid = 0.
+    where (tempm_in(:,:,k)<slim) solid = 1.-.5*solid0
+    ! solid(:,:,k) = max(0.,solid(:,:,k))
+    ! write(*,*) "tempm_in",tempm_in(448, 155,k)
+    ! write(*,*) "slim",slim
+    ! write(*,*) "solid0",solid0(448, 155,k)
+    ! write(*,*) "solid",solid(448, 155,k)
+    ! write(*,*) "ppm_in",ppm_in(448, 155,k)
 
-    ! write(*,*) "solid",solid(376,240,k)
-    ! write(*,*) "ppm_in",ppm_in(376,240,k)
+    snow = 0.
+    where (mask_in(:,:,k)) snow  = solid * ppm_in(:,:,k)            ! snow&rain  fractionation acc. to Pipes & Quick 1977
+    ! write(*,*) "snow",snow(448, 155,k)
+    rain = 0.
+    where (mask_in(:,:,k)) rain  = (1 - solid) * ppm_in(:,:,k)
+    ! write(*,*) "rain",rain(448, 155,k)
 
-    snow(:,:,k) = 0.
-    where (mask_in(:,:,k)) snow(:,:,k)  = solid(:,:,k) * ppm_in(:,:,k)            ! snow&rain  fractionation acc. to Pipes & Quick 1977
-    rain(:,:,k) = 0.
-    where (mask_in(:,:,k)) rain(:,:,k)  = (1 - solid(:,:,k)) * ppm_in(:,:,k)
-    tempmask(:,:,k) = ((tempm_in(:,:,k) > -6.5) .AND. (mask_in(:,:,k)))
-    ! write(*,*) "temp",tempm_in(376,240,k)
-    ! write(*,*) "ppm",ppm_in(376,240,k)
-    ! write(*,*) "radm_in",radm_in(376,240,k)
-    ! write(*,*) "snow",snow(376,240,k)
-    ! write(*,*) "rain",rain(376,240,k)
-    ! write(*,*) "mask_in",mask_in(376,240,k)
-    ! write(*,*) "tempmask",tempmask(376,240,k)
+    tempmask = ((tempm_in(:,:,k) > -6.5) .AND. (mask_in(:,:,k)))
+    ! write(*,*) "temp",tempm_in(448, 155,k)
+    ! write(*,*) "ppm",ppm_in(448, 155,k)
+    ! write(*,*) "radm_in",radm_in(448, 155,k)
+    ! write(*,*) "snow",snow(448, 155,k)
+    ! write(*,*) "rain",rain(448, 155,k)
+    ! write(*,*) "mask_in",mask_in(448, 155,k)
+    ! write(*,*) "tempmask",tempmask(448, 155,k)
 
     ! PDD=PDD4(temp,3.5)*msk
     ! write(*,*) "calculates PDD...."
-    CALL PDD4(tempm_in(:,:,k), stddev, PDD0(:,:,k))
-    ! write(*,*) "PDD0",PDD0(376,240,k)
+    CALL PDD4(tempm_in(:,:,k), stddev, PDD0)
+    ! write(*,*) "PDD0",PDD0(448, 155,k)
 
     ! write(*,*) "calculates dEBMmodel_cloud...."
     ! write(*,*) "Ans"
-    CALL dEBMmodel_cloud(Ans, radm_in(:,:,k), tempm_in(:,:,k), PDD0(:,:,k), rain(:,:,k), hoursns(:,:,k), qns(:,:,k), tempmask(:,:,k), fluxfacns(:,:,k), taucs, tauoc, MELTns(:,:,k), PREFRns(:,:,k))
-    ! write(*,*) "MELTns",MELTns(376,240,k)
-    ! write(*,*) "PREFRns",PREFRns(376,240,k)
-  ! write(*,*) "Ads"
-    CALL dEBMmodel_cloud(Ads, radm_in(:,:,k), tempm_in(:,:,k), PDD0(:,:,k), rain(:,:,k), hoursds(:,:,k), qds(:,:,k), tempmask(:,:,k), fluxfacds(:,:,k), taucs, tauoc, MELTds(:,:,k), PREFRds(:,:,k))
-    ! write(*,*) "Aws"
-    CALL dEBMmodel_cloud(Aws, radm_in(:,:,k), tempm_in(:,:,k), PDD0(:,:,k), rain(:,:,k), hoursws(:,:,k), qws(:,:,k), tempmask(:,:,k), fluxfacws(:,:,k), taucs, tauoc, MELTws(:,:,k), PREFRws(:,:,k))
-    ! write(*,*) "Ai"
-    CALL dEBMmodel_cloud(Ai , radm_in(:,:,k), tempm_in(:,:,k), PDD0(:,:,k), rain(:,:,k), hoursi(:,:,k), qi(:,:,k), tempmask(:,:,k), fluxfaci(:,:,k), taucs, tauoc, MELTi(:,:,k), PREFRi(:,:,k))
+    CALL dEBMmodel_cloud(Ans, Ans+.05, radm_in(:,:,k), tempm_in(:,:,k), PDD0, rain, hoursns, qns, c1cs, c2cs, c1oc, c2oc, tempmask, fluxfacns, taucs, tauoc,  MELTns, PREFRns)
+    ! write(*,*) "Ans",Ans
+    ! write(*,*) "MELTns",MELTns(448, 155)
+    ! write(*,*) "PREFRns",PREFRns(448, 155)
+    CALL dEBMmodel_cloud(Ads, Ads+.05, radm_in(:,:,k), tempm_in(:,:,k), PDD0, rain, hoursds, qds, c1cs, c2cs, c1oc, c2oc, tempmask, fluxfacns, taucs, tauoc, MELTds, PREFRds)
+    ! write(*,*) "Ads",Ads
+    ! write(*,*) "MELTds",MELTds(448, 155)
+    ! write(*,*) "PREFRds",PREFRds(448, 155)
+    CALL dEBMmodel_cloud(Aws, Aws+.05, radm_in(:,:,k), tempm_in(:,:,k), PDD0, rain, hoursws, qws, c1cs, c2cs, c1oc, c2oc, tempmask, fluxfacns, taucs, tauoc, MELTws, PREFRws)
+    ! write(*,*) "Aws",Aws
+    ! write(*,*) "MELTws",MELTws(448, 155)
+    ! write(*,*) "PREFRws",PREFRws(448, 155)
+    CALL dEBMmodel_cloud(Ai , Ai+.05,  radm_in(:,:,k), tempm_in(:,:,k), PDD0, rain, hoursi,  qi, c1cs, c2cs, c1oc, c2oc, tempmask, fluxfacns, taucs, tauoc, MELTi, PREFRi)
+    ! write(*,*) "Ai",Ai
+    ! write(*,*) "MELTi",MELTi(448, 155)
+    ! write(*,*) "PREFRi",PREFRi(448, 155)
 
-    ! write(*,*) k, " hoursns", hoursns(376,240,k)
-    ! write(*,*) k, " hoursds", hoursds(376,240,k)
-    ! write(*,*) k, " hoursws", hoursws(376,240,k)
-    ! write(*,*) k, " hoursi", hoursi(376,240,k)
+    ! write(*,*) k, " hoursns", hoursns(448, 155,k)
+    ! write(*,*) k, " hoursds", hoursds(448, 155,k)
+    ! write(*,*) k, " hoursws", hoursws(448, 155,k)
+    ! write(*,*) k, " hoursi", hoursi(448, 155,k)
 
-    ! write(*,*) k, " fluxfacns", fluxfacns(376,240,k)
-    ! write(*,*) k, " fluxfacds", fluxfacds(376,240,k)
-    ! write(*,*) k, " fluxfacws", fluxfacws(376,240,k)
-    ! write(*,*) k, " fluxfaci", fluxfaci(376,240,k)
+    ! write(*,*) k, " fluxfacns", fluxfacns(448, 155,k)
+    ! write(*,*) k, " fluxfacds", fluxfacds(448, 155,k)
+    ! write(*,*) k, " fluxfacws", fluxfacws(448, 155,k)
+    ! write(*,*) k, " fluxfaci", fluxfaci(448, 155,k)
 
     ! write(*,*) "calculates snow type...."
-    new_snow(:,:,k) = (MELTns(:,:,k) < snow(:,:,k))
-    dry_snow(:,:,k) = ((.NOT.new_snow(:,:,k)) .AND. (PREFRds(:,:,k) >= (MELTds(:,:,k) + rain(:,:,k))))
-    wet_snow(:,:,k) = ((.NOT.new_snow(:,:,k)) .AND. (.NOT.dry_snow(:,:,k)))
-    ! write(*,*) "MELTns",MELTns(376,240,k)
-    ! write(*,*) "snow",snow(376,240,k)
-  ! write(*,*) "new_snow",new_snow(376,240,k)
-    ! write(*,*) "dry_snow",dry_snow(376,240,k)
-    ! write(*,*) "wet_snow",wet_snow(376,240,k)
+    old_wet  = (wet_snow .AND. (PREFRws < (MELTws + rain)))
+    ! write(*,*) "wet_snow",wet_snow(448, 155,k)
+    ! write(*,*) "PREFRws",PREFRws(448, 155,k)
+    ! write(*,*) "MELTws",MELTws(448, 155,k)
+    ! write(*,*) "rain",rain(448, 155,k)
+    ! write(*,*) "old_wet",old_wet(448, 155,k)
+    new_snow = (MELTns <= snow)
+    dry_snow = ((.NOT.new_snow) .AND. (PREFRds >= (MELTds + rain)) .AND. (.NOT.old_wet))
+    wet_snow = ((.NOT.new_snow) .AND. ((.NOT.dry_snow) .OR. (old_wet)))
+    ! write(*,*) "MELTns",MELTns(448, 155,k)
+    ! write(*,*) "snow",snow(448, 155,k)
+    ! write(*,*) "rain",rain(448, 155,k)
+    ! write(*,*) "old_wet",old_wet(448, 155)
+    ! write(*,*) "new_snow",new_snow(448, 155)
+    ! write(*,*) "dry_snow",dry_snow(448, 155)
+    ! write(*,*) "wet_snow",wet_snow(448, 155)
 
-    melt_snow(:,:,k) = 0.
-    where (wet_snow(:,:,k)) melt_snow(:,:,k) = (MELTws(:,:,k)+max(0.,-PREFRws(:,:,k)))
-    where (dry_snow(:,:,k)) melt_snow(:,:,k) = (MELTds(:,:,k)+max(0.,-PREFRds(:,:,k)))
-    where (new_snow(:,:,k)) melt_snow(:,:,k) = (MELTns(:,:,k)+max(0.,-PREFRns(:,:,k)))
-    ! write(*,*) "melt_snow",melt_snow(:,:,k)
+    melt_snow = 0.
+    where (wet_snow) melt_snow = (MELTws+max(0.,-PREFRws))
+    where (dry_snow) melt_snow = (MELTds+max(0.,-PREFRds))
+    where (new_snow) melt_snow = (MELTns+max(0.,-PREFRns))
+    ! write(*,*) "melt_snow",melt_snow(448, 155)
+
+    SNH_OUT(:,:,k)  = max(0.,tmpSNH + (snow)*30.5)
+    ! write(*,*) "SNH_OUT",SNH_OUT(448, 155,k)
+    ! write(*,*) "tmpSNH",tmpSNH(448, 155)
+    ! write(*,*) "(snow(:,:,k))*30.5",(snow(448, 155))
 
     REFR_OUT(:,:,k)  = 0.
-    where (wet_snow(:,:,k)) REFR_OUT(:,:,k) = max(0.,PREFRws(:,:,k))
-    where (dry_snow(:,:,k)) REFR_OUT(:,:,k) = max(0.,PREFRds(:,:,k))
-    where (new_snow(:,:,k)) REFR_OUT(:,:,k) = max(0.,PREFRns(:,:,k))
-    where (mask_in(:,:,k))  REFR_OUT(:,:,k) = min(.6*(tmpSNH/mth_days(k)+snow(:,:,k)), REFR_OUT(:,:,k))
-    ! write(*,*) "REFR_OUT",REFR_OUT(376,240,k)
+    where (wet_snow) REFR_OUT(:,:,k) = max(0.,PREFRws)
+    where (dry_snow) REFR_OUT(:,:,k) = max(0.,PREFRds)
+    where (new_snow) REFR_OUT(:,:,k) = max(0.,PREFRns)
+    where (mask_in(:,:,k))  REFR_OUT(:,:,k) = min(.6*(SNH_OUT(:,:,k)/30.5), REFR_OUT(:,:,k))
+    ! write(*,*) "REFR_OUT",REFR_OUT(448, 155,k)
 
     ! ice_melt_fract: to dertermine the percentage of ice melt in total melt
-    where ((melt_snow(:,:,k) - REFR_OUT(:,:,k) - tmpSNH/mth_days(k) - snow(:,:,k)) > 0.)
-      ice_melt_fract(:,:,k)  = (melt_snow(:,:,k) - REFR_OUT(:,:,k) - tmpSNH/mth_days(k) - snow(:,:,k))/melt_snow(:,:,k)
+    ice_melt = (melt_snow - REFR_OUT(:,:,k) - tmpSNH/30.5 - snow)
+    where ( ice_melt > 0.)
+      ice_melt_fract  = ice_melt/melt_snow
     elsewhere
-      ice_melt_fract(:,:,k)  = 0.
+      ice_melt_fract  = 0.
     end where
     ! ice_melt_fract(:,:,k)  = (melt_snow(:,:,k)-REFR_OUT(:,:,k)-tmpSNH_in/30.5-snow(:,:,k))/melt_snow(:,:,k)     ! seems to work for matlab, but may involve a division by zero!!!
-      ! write(*,*) "(melt_snow-REFR(:,:,month)-tmpSNH/30.5-snow)/melt_snow=",(melt_snow(376,240,k)-REFR_OUT(376,240,k)-tmpSNH_in(376,240)/30.5-snow(376,240,k))/melt_snow(376,240,k)
-      ! write(*,*) "(melt_snow-REFR(:,:,month)-tmpSNH/30.5-snow)",(melt_snow(376,240,k)-REFR_OUT(376,240,k)-tmpSNH_in(376,240)/30.5-snow(376,240,k))
-      ! write(*,*) "(melt_snow-REFR(:,:,month))",(melt_snow(376,240,k)-REFR_OUT(376,240,k))
-      ! write(*,*) "(tmpSNH/30.5)",(tmpSNH_in(376,240)/30.5)
-      ! write(*,*) "(snow(376,240))",(snow(376,240,k))
-      ! write(*,*) "ice_melt_fract",ice_melt_fract(576,491,k)
+      ! write(*,*) "(melt_snow-REFR(:,:,month)-tmpSNH/30.5-snow)/melt_snow=",(melt_snow(448, 155,k)-REFR_OUT(448, 155,k)-tmpSNH_in(448, 155)/30.5-snow(448, 155,k))/melt_snow(448, 155,k)
+      ! write(*,*) "(melt_snow-REFR(:,:,month)-tmpSNH/30.5-snow)",(melt_snow(448, 155,k)-REFR_OUT(448, 155,k)-tmpSNH_in(448, 155)/30.5-snow(448, 155,k))
+      ! write(*,*) "(melt_snow-REFR(:,:,month))",(melt_snow(448, 155,k)-REFR_OUT(448, 155,k))
+      ! write(*,*) "(tmpSNH/30.5)",(tmpSNH_in(448, 155)/30.5)
+      ! write(*,*) "(snow(448, 155))",(snow(448, 155,k))
+      ! write(*,*) "ice_melt_fract",ice_melt_fract(448, 155)
+      ! write(*,*) "tmpSNH",tmpSNH(448, 155)
+      ! write(*,*) "lastyear",lastyear(448, 155)
 
-    MELT_OUT(:,:,k) = melt_snow(:,:,k)*(1 - ice_melt_fract(:,:,k)) + MELTi(:,:,k)*ice_melt_fract(:,:,k)
-    ! write(*,*) "MELTi",MELTi(376,240,k)
-    ! write(*,*) "MELT_OUT",MELT_OUT(376,240,k)
+    MELT_OUT(:,:,k) = melt_snow*(1. - ice_melt_fract) + MELTi*ice_melt_fract
+    ! write(*,*) "MELTi",MELTi(448, 155,k)
+    ! write(*,*) "MELT_OUT",MELT_OUT(448, 155,k)
 
-    SNH_OUT(:,:,k)  = max(0.,tmpSNH+(snow(:,:,k) - melt_snow(:,:,k) + REFR_OUT(:,:,k))*mth_days(k))
-    ! write(*,*) "SNH_OUT",SNH_OUT(376,240,k)
+    SNH_OUT(:,:,k)  = max(0., tmpSNH + (snow - melt_snow + REFR_OUT(:,:,k))*30.5)
+    ! write(*,*) "SNH_OUT",SNH_OUT(448, 155,k)
 
-    ! Asnow(:,:,k)    = -Ans*new_snow(:,:,k) - Ads*dry_snow(:,:,k) - Aws*wet_snow(:,:,k)
-    ! write(*,*) "Asnow",Asnow(576,491,k)
-
-    Asnow(:,:,k)  = 0.
-    where (wet_snow(:,:,k))
-      Asnow(:,:,k) = Aws
-    ! write(*,*) "Ans",Asnow(376,240,k)
-    elsewhere (dry_snow(:,:,k))
-      Asnow(:,:,k) = Ads
-    ! write(*,*) "Ans",Asnow(376,240,k)
-    elsewhere (new_snow(:,:,k))
-      Asnow(:,:,k) = Ans
+    ! Asnow(:,:,k)  = 0.
+    where (wet_snow)
+      Asnow = Aws
+    ! write(*,*) "Ans",Asnow(448, 155,k)
+    elsewhere (dry_snow)
+      Asnow = Ads
+    elsewhere (new_snow)
+      Asnow = Ans
     elsewhere
-      Asnow(:,:,k) = 0.
+      Asnow = 0.
     end where
-    ! write(*,*) "Asnow",Asnow(576,491,k)
+    where (mask_in(:,:,k)) A_OUT(:,:,k)   = (Asnow * (1 - ice_melt_fract) + Ai * ice_melt_fract)
+  !   write(*,*) "Asnow",Asnow(448, 155)
+  ! write(*,*) "A_OUT",A_OUT(448, 155,k)
 
-    where (mask_in(:,:,k)) A_OUT(:,:,k)   = (Asnow(:,:,k) * (1 - ice_melt_fract(:,:,k)) + Ai * ice_melt_fract(:,:,k))
-    ! write(*,*) "A_OUT",A_OUT(576,491,k)
-
-    where (mask_in(:,:,k)) ACC_OUT(:,:,k) = snow(:,:,k)
-    ! write(*,*) "ACC_OUT",ACC_OUT(376,240,k)
+    where (mask_in(:,:,k)) ACC_OUT(:,:,k) = snow
+    ! write(*,*) "ACC_OUT",ACC_OUT(448, 155,k)
 
     if (k==9) then
         tmpSNH = max(0.,SNH_OUT(:,:,k) - lastyear)
@@ -571,6 +633,7 @@ SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, 
     end if
 
     where (mask_in(:,:,k)) SMB_OUT(:,:,k) = (ACC_OUT(:,:,k) - MELT_OUT(:,:,k) + REFR_OUT(:,:,k))
+    ! write(*,*) "SMB_OUT",SMB_OUT(448, 155,k)
 
   end do
 

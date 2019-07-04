@@ -32,11 +32,11 @@ SUBROUTINE dEBM_decl(days_in, obl_in, DECL_out)
   ! * uncomment the following to see the difference                        *
   ! ************************************************************************
   ! * INPUT: days, obliqu                                                  *
-  ! *   days           :                                           *
-  ! *   obliqu         :                                          *
+  ! *   days           :  days in each month                               *
+  ! *   obliqu         :  obliquity                                        *
   ! ************************************************************************
   ! * OUTPUT: DECL                                                         *
-  ! *   DECL          :                    *
+  ! *   DECL          : declinity                                          *
   ! ************************************************************************
 
   integer, intent(in) :: days_in
@@ -56,9 +56,9 @@ SUBROUTINE dEBM_sunny_hours_c(mth_in, elev_in, lat_in, obl_in, HOURS_OUT, Q_OUT,
   ! *   lat           : latitude                                           *
   ! *   elev          : elevation                                          *
   ! ************************************************************************
-  ! * OUTPUT: HOURS, Q, FLUXFAC                                *
+  ! * OUTPUT: HOURS, Q, FLUXFAC                                            *
   ! *   HOURS         : duration of melt period in hours                   *
-  ! *   q             : daily insolation                                   *
+  ! *   Q             : daily insolation                                   *
   ! *   FLUXFAC       : daily insolation SW                                *
   ! ************************************************************************
 
@@ -218,7 +218,7 @@ SUBROUTINE dEBMmodel_cloud(A_in, swd_in, Temp_in, PDD_in, rain_in, hours_in, q_i
 ! **************************************************************************
   ! * OUTPUT: MELT, REFR                                                   *
   ! *   MELT          : the melt rate (mm/day)                             *
-  ! *   REFR          :                                                    *
+  ! *   REFR          : refreeze                                           *
   ! ************************************************************************
 
   real, intent(in) :: A_in, taucs_in, tauoc_in
@@ -337,11 +337,11 @@ SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, 
   ! *   lat           : latitude                                           *
   ! *   mask          : mapping                                            *
   ! ************************************************************************
-  ! * OUTPUT: SNH, SMB, MELT, ACC, REFR, A                                  *
+  ! * OUTPUT: SNH, SMB, MELT, ACC, REFR, A                                 *
   ! *   SNH           : snow height                                        *
   ! *   SMB           : surface mass balance                               *
   ! *   MELT          : surface melt                                       *
-  ! *   ACC           :                                                    *
+  ! *   ACC           : accumulation                                       *
   ! *   REFR          : refreeze                                           *
   ! *   A             : albedo                                             *
   ! ************************************************************************
@@ -424,9 +424,9 @@ SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, 
   !
   SMB_OUT    = tempm_in*0
   SNH_OUT    = tempm_in*0
-  ! MELT_OUT   = tempm_in*0
-  ! ACC_OUT    = tempm_in*0
-  ! REFR_OUT   = tempm_in*0
+  MELT_OUT   = tempm_in*0
+  ACC_OUT    = tempm_in*0
+  REFR_OUT   = tempm_in*0
   A_OUT      = tempm_in*0
 
   tmpSNH = tmpSNH_in
