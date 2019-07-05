@@ -139,7 +139,7 @@ SUBROUTINE dEBM_sunny_hours_c(mth_in, elev_in, lat_in, obl_in, HOURS_OUT, Q_OUT,
   ! hourangle of sun rising above elev
   ha_elev = (sin(elev1)-sinphisind)/cosphicosd
     where (ha_elev > 1.) ha_elev = 1.
-    where (ha_elev < -1.) elev1 = -1.
+    where (ha_elev < -1.) ha_elev = -1.
   ha_elev = acos(ha_elev)
     ! write(*,*) "(sin(elev1))", (sin(elev1))
     ! write(*,*) "(sin(elev1)-sinphisind)", (sin(elev1)-sinphisind(448, 155))
