@@ -89,13 +89,21 @@ contains
   SUBROUTINE READ_NETCDF
     ! ************************************************************************
     ! * This SUBTROUTINE reads in atmosphere fields and ice-mask             *
+    ! * note that this subroutine is orginally generated for coupling        *
+    ! *     AWICM-PISM (developed by Paul)                                   *
+    ! * for other input, units needs to be carefully checked                 *
     ! * atmosphere fields include :                                          *
-    ! *   surface_temperature, shortwave_radiation_downward, precipitation   *
+    ! *   surface_temperature: units K                                       *
+    ! *   shortwave_radiation_downward: units                                *
+    ! *   precipitation: units kg m-2 second-1
     ! ************************************************************************
     IMPLICIT NONE
 
     integer :: status, ncid, varid
     integer :: i, j
+    character (len = 20) :: precipitation_units,&
+            &shortwave_radiation_downward_units,&
+            &surface_temperature_units
 
     include 'netcdf.inc'
 
@@ -110,15 +118,59 @@ contains
     ! get surface_temperature
     status=nf_inq_varid(ncid, temperature_varname, varid)
     status=nf_get_var_real(ncid, varid, surface_temperature)
-    surface_temperature = surface_temperature - 273.15
+    status=nf_get_att_text(ncid, varid, "units", surface_temperature_units)
+    !write(*,*) "surface_temperature_units is ",surface_temperature_units
+    if (status.ne.nf_noerr) then
+        write(*,*) 'WARNING: units of surface_temperature not found'
+        write(*,*) 'Take K as default units'
+        write(*,*) 'Possibly wrong result! Plz double check your result!'
+        write(*,*) 'expected units for surface temperature: K or degC'
+        surface_temperature = surface_temperature - 273.15
+    else
+        if (surface_temperature_units=='K') then
+                !write(*,*) 'input surface_temperature units is K'
+                surface_temperature = surface_temperature - 273.15
+        elseif (surface_temperature_units=='degC') then
+                !write(*,*) 'input surface_temperature units is degC'
+        else
+                write(*,*) 'WARNING: Invalid units of surface temperature'
+                write(*,*) 'Invalid units',surface_temperature_units
+                write(*,*) 'Expected units: K or degC'
+                write(*,*) 'Here we will take K as default units'
+                write(*,*) 'Possibly wrong result! Plz double check your result!'
+                surface_temperature = surface_temperature - 273.15
+        end if
+    end if
     surface_temperature1 = reshape( surface_temperature, (/xlen,ylen,mlen,nlen/) )
-
     ! write(*,*) "surface_temperature1",surface_temperature1(135,58,:,:)
 
     ! get precipitation
     status=nf_inq_varid(ncid, precipitation_varname, varid)
     status=nf_get_var_real(ncid, varid, precipitation)
-    !precipitation = precipitation*24*60*60
+    status=nf_get_att_text(ncid, varid, "units", precipitation_units)
+    !write(*,*) "precipitation_units is ",precipitation_units
+    if (status.ne.nf_noerr) then
+        write(*,*) 'WARNING: units of precipitation not found'
+        write(*,*) 'Take kg m-2 second-1 as default units'
+        write(*,*) 'Possibly wrong result! Plz double check your result!'
+        write(*,*) 'expected units for precipitation: kg m-2 second-1,&
+                &or mm day-1'
+        precipitation = precipitation*24.*60.*60.
+    else
+        if (precipitation_units=='kg m-2 second-1') then
+                !write(*,*) 'input precipitation units is kg m-2 second-1'
+                precipitation = precipitation*24.*60.*60.
+        elseif (precipitation_units=='mm day-1') then
+                !write(*,*) 'input precipitation units is mm day-1'
+        else
+                write(*,*) 'WARNING: Invalid units of precipitation'
+                write(*,*) 'Invalid units',precipitation_units
+                write(*,*) 'Expected units: "kg m-2 second-1" or "mm day-1"'
+                write(*,*) 'Here we will take "kg m-2 second-1" as default units'
+                write(*,*) 'Possibly wrong result! Plz double check your result!'
+                precipitation = precipitation*24.*60.*60.
+        end if
+    end if
     precipitation1 = reshape( precipitation, (/xlen,ylen,mlen,nlen/) )
     ! write(*,*) "precipitation",precipitation1(135,58,:,:)
 

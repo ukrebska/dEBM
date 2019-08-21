@@ -362,9 +362,9 @@ SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, 
   ! * INPUT: tempm, radm, ppm, tmpSNH, lastyear, lat, msk                  *
   ! *  tempm,radm,ppm are 3-dimension                                      *
   ! *  tmpSNH, lastyear,lat,msk are 2 dimension                            *
-  ! *   tempm         : temperature                                        *
+  ! *   tempm         : temperature degC                                       *
   ! *   radm          : daily short wave insolation at the surface         *
-  ! *   ppm           : precipitation                                      *
+  ! *   ppm           : precipitation mm/day                                      *
   ! *   tmpSNH        : snow height of the last timestep                   *
   ! *   lastyear      : snow height at the end of last summer              *
   ! *   lat           : latitude                                           *
@@ -636,6 +636,18 @@ SUBROUTINE dEBM_core(tempm_in, radm_in, ppm_in, tmpSNH_in, lastyear_in, lat_in, 
     ! write(*,*) "SMB_OUT",SMB_OUT(448, 155,k)
 
   end do
+
+  ! convert output data to expected units
+  ! SNH: convert units from "mm" to "m"
+  ! SMB: convert units from "mm day-1" to "kg m-2 second-1"
+  ! ACC: convert units from "mm day-1" to "kg m-2 second-1"
+  ! MELT: convert units from "mm day-1" to "kg m-2 second-1"
+  ! REFR: convert units from "mm day-1" to "kg m-2 second-1"
+  SNH_OUT  = SNH_OUT/1000.
+  SMB_OUT  = SMB_OUT/(24.*60.*60.) 
+  ACC_OUT  = ACC_OUT/(24.*60.*60.)
+  MELT_OUT = MELT_OUT/(24.*60.*60.)
+  REFR_OUT = REFR_OUT/(24.*60.*60.)
 
 END SUBROUTINE dEBM_core
 
