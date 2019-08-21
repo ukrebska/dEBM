@@ -4,10 +4,15 @@ MODULE MOD_OUTPUT
 ! ************************************************************************
 ! * Variables includes: SNH, SMB, MELT, ACC, REFR, A                     *
 ! *   SNH           : snow height                                        *
+! *                   units meter per month                              *
 ! *   SMB           : surface mass balance                               *
+! *                   units kg m-2 second-1                              *
 ! *   MELT          : surface melt                                       *
+! *                   units kg m-2 second-1                              *
 ! *   ACC           : accumulation                                       *
+! *                   units kg m-2 second-1                              *
 ! *   REFR          : refreeze                                           *
+! *                   units kg m-2 second-1                              *
 ! *   A             : albedo                                             *
 ! ************************************************************************
 
@@ -59,12 +64,12 @@ contains
     character (len = *), parameter :: LON_UNITS = "degrees_east"
     character (len = *), parameter :: LAT_UNITS = "degrees_north"
     ! character (len = *), parameter :: TIM_UNITS = "day since 1-1-1"
-    character (len = *), parameter :: MELT_UNITS = ""
-    character (len = *), parameter :: SNH_UNITS = ""
-    character (len = *), parameter :: SMB_UNITS = ""
-    character (len = *), parameter :: ACC_UNITS = ""
-    character (len = *), parameter :: REFR_UNITS = ""
-    character (len = *), parameter :: Albedo_UNITS = " "
+    character (len = *), parameter :: MELT_UNITS = "kg m-2 second-1"
+    character (len = *), parameter :: SNH_UNITS = "m"
+    character (len = *), parameter :: SMB_UNITS = "kg m-2 second-1"
+    character (len = *), parameter :: ACC_UNITS = "kg m-2 second-1"
+    character (len = *), parameter :: REFR_UNITS = "kg m-2 second-1"
+    character (len = *), parameter :: Albedo_UNITS = ""
 
     ! write(*,*) "1"
 
