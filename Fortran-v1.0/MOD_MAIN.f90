@@ -517,8 +517,8 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
     where (.NOT. tmpmask) PDD = 0.
 
     ! Albedo
-    Ans = Ans
-    Ads = Ads
+    Ans = Ansc
+    Ads = Adsc
     Aws = max(Ai, Awsc - sn_aging*PDD)
     ! debug
     if (debug_switch) then
