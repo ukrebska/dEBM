@@ -1,15 +1,27 @@
-& debm
-   xlen                                  = 600                             ! --- x direction
-   ylen                                  = 600                              ! --- y direction
-   tlen                                  = 12                              ! --- time
-   filename_in                           = 'test.nc'
-   precipitation_varname                 = 'precipitation'
-   temperature_varname                   = 'air_temp'
-   shortwave_radiation_downward_varname  = 'swd'
-   mapping_varname                       = 'orog'
-   longitude_varname                     = 'lon'
-   latitude_varname                      = 'lat'
-   time_varname                          = 'time'
-   stddev                                =  3.5
-   obliquity							 =  23.446
+&runctl
+lresume=.false.
+use_shortwave_radiation_TOA=.true.
+use_mask=.false.
+debug_switch=.false.
+debug_lon=241
+debug_lat=107
+debug_mon=12
+debug_year=1
+/
+
+&debm
+filename_in='test.nc'
+precipitation_varname='precipitation'
+temperature_varname='air_temp'
+shortwave_radiation_downward_varname='swd'
+shortwave_radiation_TOA_varname='TOAswd'
+cloud_cover_varname='cc'
+emissivity_varname='emiss'
+transmissivity_varname='tau'
+mapping_varname='thk'
+longitude_varname='lon'
+latitude_varname='lat'
+time_varname='time'
+stddev=3.5
+obliquity=23.446
 /
