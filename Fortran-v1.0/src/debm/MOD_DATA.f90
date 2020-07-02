@@ -18,7 +18,12 @@ MODULE MOD_DATA
 ! ************************************************************************
 
   USE MOD_PRE
+  USE NETCDF
+
   implicit none
+
+  include 'netcdf.inc'
+
 
   real(kind=WP), dimension(:,:,:,:), allocatable ::  shortwave_radiation_downward1, shortwave_radiation_TOA1,&
                                             &precipitation1,&
