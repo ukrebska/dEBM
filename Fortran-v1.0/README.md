@@ -5,7 +5,7 @@ The diurnal Energy Balance Model (dEBM) is an surface mass balance model of inte
 
 If you have some questions, please contact Uta Krebs-Kanzow <ukrebska@awi.de> or Shan Xu <shan.xu@awi.de>
 
-Installation
+Getting Started with dEBM
 =============
 
 1. get the code :
