@@ -1,6 +1,6 @@
 MODULE MOD_MAIN
   ! ************************************************************************
-  ! * This MODULE calculates surface mass balance                          *
+  ! * Calculates surface mass balance                                      *
   ! ************************************************************************
   ! * MOD_MAIN                                                             *
   ! *     | dEBM_core                                                      *
@@ -79,6 +79,7 @@ SUBROUTINE dEBM_fluxfac(mth, latm, obl, sol_flux_fact_0)
 
   ! decl
   allocate (decl(xlen, ylen))
+  decl=0.
   CALL dEBM_decl(days(mth), obl, decl(1,1))
   do i = 1, xlen
       do j = 1, ylen
@@ -89,6 +90,8 @@ SUBROUTINE dEBM_fluxfac(mth, latm, obl, sol_flux_fact_0)
   ! hourangle of sun rise
   allocate (sinphisind(xlen, ylen))
   allocate (cosphicosd(xlen, ylen))
+  sinphisind=0.
+  cosphicosd=0.
   sinphisind = sin(pi/180.0_WP*latm)*sin(pi/180.0_WP*decl)
   cosphicosd = cos(pi/180.0_WP*latm)*cos(pi/180.0_WP*decl)
   allocate (ha_0(xlen, ylen))
@@ -165,6 +168,9 @@ SUBROUTINE dEBM_sunny_hours_c(mth, elev, latm, obl, HOURS, Q, FLUXFAC)
   allocate (ha_0(xlen, ylen))
   allocate (ha_elev0(xlen, ylen))
   ha_elev0 = -sinphisind/cosphicosd
+  ha_0=0.
+  ha_elev0=0.
+  !
   where (ha_elev0 > 1.0_WP)
     ha_0 = 0.0_WP  ! acos(1.)
   elsewhere (ha_elev0 < -1.0_WP)
@@ -175,11 +181,13 @@ SUBROUTINE dEBM_sunny_hours_c(mth, elev, latm, obl, HOURS, Q, FLUXFAC)
 
   ! daily insolation
   allocate (sol_flux_fact_0(xlen, ylen))
+  sol_flux_fact_0=0.
   sol_flux_fact_0  = (sinphisind*ha_0+cosphicosd*sin(ha_0))/pi
   FLUXFAC = sol_flux_fact_0
 
   ! hourangle of sun rising above elev
   allocate (ha_elev(xlen, ylen))
+  ha_elev=0.
   ha_elev0 = (sin(elev1)-sinphisind)/cosphicosd
   where (ha_elev0 > 1.0_WP)
     ha_elev = 0.0_WP  ! acos(1.)
@@ -270,7 +278,8 @@ SUBROUTINE dEBMmodel_fullrad(A, Aoc, swd_cs, swd_oc, temp, pdd, rain, hours, q, 
   ! *   REFR          : refreeze                                           *
   ! ************************************************************************
 
-  real(kind=WP), intent(in), dimension(:,:) :: A, Aoc
+  real(kind=WP), intent(in) :: A, Aoc
+  ! real(kind=WP), intent(in), dimension(:,:) :: A, Aoc
   real(kind=WP), intent(in), dimension(:,:) :: c1cs, c2cs, c1oc, c2oc
   real(kind=WP), intent(in), dimension(:,:)    :: swd_cs, swd_oc
   real(kind=WP), intent(in), dimension(:,:)    :: temp, pdd, rain, hours, q, cc
@@ -279,6 +288,7 @@ SUBROUTINE dEBMmodel_fullrad(A, Aoc, swd_cs, swd_oc, temp, pdd, rain, hours, q, 
   real(kind=WP), intent(out), dimension(:,:)   :: MELT, REFR
 
   real(kind=WP), parameter :: Lf  = 3.34e5         ! Lf is latent heat of fusion
+
   real(kind=WP), allocatable, dimension(:,:)   :: meltcs, meltoc, refrcs, refroc, meltFDcs, meltFDoc
 
   allocate (meltcs(xlen, ylen))
@@ -292,7 +302,6 @@ SUBROUTINE dEBMmodel_fullrad(A, Aoc, swd_cs, swd_oc, temp, pdd, rain, hours, q, 
   where (MC) meltFDcs = ((1.0_WP-A)*swd_cs + (c2cs+c1cs*temp))/Lf*24.0_WP*60.0_WP*60.0_WP          ! melt clearsky fullday
   where (MC) meltFDoc = ((1.0_WP-Aoc)*swd_oc + (c2oc+(c1oc)*temp))/Lf*24.0_WP*60.0_WP*60.0_WP      ! melt overcast fullday
                                                                                                    ! we don't distinguish night and day here...
-
   refroc = max(-meltFDoc, 0.0_WP)               ! refreeze overcast
   meltoc = max( meltFDoc, 0.0_WP)               ! melt overcast
   meltcs = max(0.0_WP, max(meltFDcs, meltcs))   ! melt clearsky
@@ -313,7 +322,7 @@ END SUBROUTINE
 
 
 
-SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear, latm, mask, obl, mth_str, SNH, SMB, MELT, REFR, A, SNOW, RAIN, S07)
+SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear, latm, mask, obl, mth_str, SNH, SMB, MELT, REFR, A, SNOW, RAIN, S07)
   ! ************************************************************************
   ! * dEBM_core calculates the surface mass blance                         *
   ! ************************************************************************
@@ -349,7 +358,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
   real(kind=WP), intent(in) :: obl
   logical, intent(in), dimension(:,:,:) :: mask
   real(kind=WP), intent(in), dimension(:,:,:)    :: tempm, swdm, &
-                                                      &emiss, clcov, ppm, latm
+                                                      &emissm, clcov, ppm, latm
 
   real(kind=WP), intent(inout), dimension(:,:,:) :: swd_TOAm   ! if the swd_TOAm is not input
                                                                ! the input field will be zero, then recalculate
@@ -358,20 +367,16 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
                                                       &A, SNOW, RAIN
   real(kind=WP) , intent(out):: S07
 
-  !  parameters
-  ! TODO(sxu): better to be put in namelists
+  !  Define parameters
   real(kind=WP), parameter :: slim   = 7.       ! melt/refreeze threshold
-  real(kind=WP), parameter :: Ansc    = .85     ! Albedo for new snow
-  real(kind=WP), parameter :: Adsc    = .74      ! Albedo for dry snow
-  real(kind=WP), parameter :: Awsc   = .65     ! Albedo for wet snow
-  real(kind=WP), parameter :: Ai     = .5     ! Albedo for ice
-  real(kind=WP), parameter :: sn_aging = .03  ! Albedo of wet snow darkens with temperature...
-  real(kind=WP), parameter :: lhf    = 2;       ! residual heat flux (e.g. due to flux into the ice sheet
-  real(kind=WP), parameter :: tau_cs = .8;      ! expected clear sky transmissivity
-  ! emissivity depends on cloud cover and greenhouse gases (incl. water vapor)
-  real(kind=WP), parameter :: epsa_cs = .72     ! eps_cs = emiss_cs + emiss_gas; (Sedlar & Hock, 2009)
-  real(kind=WP), parameter :: epsa_oc = epsa_cs+.18     ! eps_oc = eps_cs + const;       (Konig-Langlo, 1994)
-  real(kind=WP), parameter :: epsi   = .95     ! emissivity of ice
+  ! real(kind=WP), parameter :: Ans    = .845     ! Albedo for new snow
+  ! real(kind=WP), parameter :: Ads    = .73      ! Albedo for dry snow
+  ! real(kind=WP), parameter :: Aws    = .55     ! Albedo for wet snow
+  real(kind=WP), parameter :: lhf    = 0;       ! residual heat flux (e.g. due to flux into the ice sheet
+  real(kind=WP), parameter :: epsi = .98     ! emissivity of ice
+! emissivity depends on cloud cover and greenhouse gases (incl. water vapor)
+  real(kind=WP), parameter :: epsa_cs = .78     ! eps_cs = emiss_cs + emiss_gas; (Sedlar & Hock, 2009)
+  real(kind=WP) :: epsa_oc                      ! eps_oc = eps_cs + cloud_bias;       (Konig-Langlo, 1994)
   real(kind=WP), parameter :: beta   = 10.     ! turbulent heat transfer coeff
   real(kind=WP), parameter :: bolz   = 5.67e-8 ! Stefan-Boltzmann constant
   real(kind=WP), parameter :: T0     = 273.15  ! melt point in K
@@ -384,10 +389,9 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
                                           &hoursws, qws, fluxfacws,&
                                           &temp, PDD
   real(kind=WP), allocatable, dimension(:,:) :: solid, cc,&
-                                          &Ans, Ads, Aws,&
                                           &swd, swd_TOA, swd_cs, swd_oc
   real(kind=WP), allocatable, dimension(:,:) :: tau, tau_oc
-  real(kind=WP), allocatable, dimension(:,:) :: epsa_csr, emiss_gas, epsa_cst, epsa_oct
+  real(kind=WP), allocatable, dimension(:,:) :: emiss, emiss_gas, epsa_cst, epsa_oct
   logical, allocatable, dimension(:,:) :: tmpmask
   real(kind=WP), allocatable, dimension(:,:) :: winkelns, winkelds, winkelws
   real(kind=WP), allocatable, dimension(:,:) :: c1cs, c2cs, c1oc, c2oc
@@ -400,15 +404,18 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
   integer, dimension(3) :: min_lat_idx
   real :: swd_lat_min, fluxfactor
 
-  allocate (hoursns(xlen, ylen))
-  allocate (qns(xlen, ylen))
-  allocate (fluxfacns(xlen, ylen))
-  allocate (hoursds(xlen, ylen))
-  allocate (qds(xlen, ylen))
-  allocate (fluxfacds(xlen, ylen))
-  allocate (hoursws(xlen, ylen))
-  allocate (qws(xlen, ylen))
-  allocate (fluxfacws(xlen, ylen))
+  allocate (hoursns(xlen, ylen), qns(xlen, ylen), fluxfacns(xlen, ylen))
+  allocate (hoursds(xlen, ylen), qds(xlen, ylen), fluxfacds(xlen, ylen))
+  allocate (hoursws(xlen, ylen), qws(xlen, ylen), fluxfacws(xlen, ylen))
+  hoursns=0.0_WP
+  qns=0.0_WP
+  fluxfacns=0.0_WP
+  hoursds=0.0_WP
+  qds=0.0_WP
+  fluxfacds=0.0_WP
+  hoursws=0.0_WP
+  qws=0.0_WP
+  fluxfacws=0.0_WP
   !
   allocate (temp(xlen, ylen))
   allocate (PDD(xlen, ylen))
@@ -416,10 +423,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
   allocate (solid(xlen, ylen))
   !
   allocate (cc(xlen, ylen))
-  allocate (Ans(xlen, ylen))
-  allocate (Ads(xlen, ylen))
-  allocate (Aws(xlen, ylen))
-
+  !
   allocate (swd(xlen, ylen))
   allocate (swd_TOA(xlen, ylen))
   allocate (swd_cs(xlen, ylen))
@@ -428,7 +432,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
   allocate (tau(xlen, ylen))
   allocate (tau_oc(xlen, ylen))
 
-  allocate (epsa_csr(xlen, ylen))
+  allocate (emiss(xlen, ylen))
   allocate (emiss_gas(xlen, ylen))
   allocate (epsa_cst(xlen, ylen))
   allocate (epsa_oct(xlen, ylen))
@@ -451,6 +455,9 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
   allocate (c2oc(xlen, ylen))
   !
   allocate (snh_est(xlen, ylen))
+
+  ! epsa_oc
+  epsa_oc = epsa_cs + cloud_bias
 
   !Summer solar flux density
   S0(1:12)=1330.0_WP
@@ -511,15 +518,12 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
     ml      = 30.5
     cc      = clcov(:,:,month)
     swd     = swdm(:,:,month)
+    emiss     = emissm(:,:,month)
     swd_TOA = swd_TOAm(:,:,month)
     tmpmask = ((tempm(:,:,month) > -6.5) .AND. (mask(:,:,month)))
     CALL PDD4(temp, stddev, PDD)
     where (.NOT. tmpmask) PDD = 0.
 
-    ! Albedo
-    Ans = Ansc
-    Ads = Adsc
-    Aws = max(Ai, Awsc - sn_aging*PDD)
     ! debug
     if (debug_switch) then
       write(*,*) "cc",cc(debug_lon, debug_lat)
@@ -529,7 +533,6 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
       write(*,*) "mask",mask(debug_lon, debug_lat,month)
       write(*,*) "tmpmask",tmpmask(debug_lon, debug_lat)
       write(*,*) "PDD",PDD(debug_lon, debug_lat)
-      write(*,*) "Aws",Aws(debug_lon, debug_lat)
     end if
 
     ! to determine the fraction of solid and liquid water in precipitation
@@ -553,35 +556,33 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
 
     ! monthly mean transmissiv.
     ! in winter & avoid numeric problems when TOA ~ 0
-    where (swd_TOA>5.0_WP)
-      tau = min(0.9_WP, max( 0.1_WP, swd/swd_TOA ))
-    elsewhere
-      tau = 0.5_WP
-    end where
 
     ! shortwave radiation of clear sky and overcast days
     ! on higher elevation it may happen that tau>tau_cs
     ! also we take care of extremely clear months (probably never a problem)
-    swd_cs = max(tau_cs*S0(month)*ff(:,:,month), swd)
-    where (cc>.05_WP)
-      swd_oc = (swd - swd_cs*(1.0_WP-cc))/cc
+    swd_cs = swd ! max(tau_cs*S0(month)*ff(:,:,month), swd)
+    swd_oc = swd
+    epsa_cst  = emiss
+    epsa_oct  = emiss
+    emiss_gas = emiss-(1-cc)*epsa_cs-cc*epsa_oc
+
+    where (cc>.9_WP)
+      cc       = 1
+    elsewhere (cc>=.1_WP)
+      !
+      swd_cs = max(tau_cs*S0(month)*ff(:,:,month),swd)
+      swd_oc = (swd-(swd_cs*(1-cc)))/cc
+      !
+      epsa_cst = epsa_cs + emiss_gas
+      epsa_oct = epsa_oc + emiss_gas
     elsewhere
-      swd_oc = swd_cs
+      cc       = 0
     end where
 
-    where (ff(:,:,month) /= 0.) tau_oc = min(tau_cs, swd_oc/(ff(:,:,month)*S0(month)))
-    tau_oc   = min(0.7_WP, tau_oc)
-    tau_oc   = max(0.0_WP, tau_oc)
     !
     if (debug_switch) then
       write(*,*) "swd_oc",swd_oc(debug_lon, debug_lat)
     end if
-
-    ! clear sky and overcast emissivity
-    epsa_csr  = epsa_cs ! min(epsa_cs,emiss(:,:,month))
-    emiss_gas = emiss(:,:,month) - (1.0_WP-cc)*epsa_csr - cc*epsa_oc
-    epsa_cst  = epsa_csr + emiss_gas
-    epsa_oct  = epsa_oc  + emiss_gas
     !
     if (debug_switch) then
       write(*,*) "tau_oc",tau_oc(debug_lon, debug_lat)
@@ -672,8 +673,8 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emiss, clcov, ppm, tmpSNH, lastyear,
 
     ! Albedo ~ snow type
     where (wet_snow) A(:,:,month) = Aws
-    where (dry_snow) A(:,:,month) = Adsc
-    where (new_snow) A(:,:,month) = Ansc
+    where (dry_snow) A(:,:,month) = Ads
+    where (new_snow) A(:,:,month) = Ans
     if (debug_switch) then
       write(*,*) "A",A(debug_lon, debug_lat,month)
     end if

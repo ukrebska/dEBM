@@ -1,9 +1,9 @@
 MODULE MOD_OUTPUT
 ! ************************************************************************
-! * This MODULE writes output files for the dEBM                         *
+! * Writes output files for the dEBM                                     *
 ! ************************************************************************
-! * MOD_OUTPUT                                                          *
-! *         | write_output                                              *
+! * MOD_OUTPUT                                                           *
+! *         | write_output                                               *
 ! ************************************************************************
 
  USE MOD_PRE
@@ -21,11 +21,11 @@ SUBROUTINE write_output(lon_output, lat_output, snh_output, smb_output, melt_out
   ! *   varnmae      longname               units                          *
   ! *   SNH          snow height            m                              *
   ! *   SMB          surface mass balance   kg m-2 second-1                *
-  ! *   MELT         surface melt           kg m-2 second-1                *
-  ! *   REFR         refreeze               kg m-2 second-1                *
+  ! *   ME           surface melt           kg m-2 second-1                *
+  ! *   RZ           refreeze               kg m-2 second-1                *
   ! *   A            albedo                                                *
-  ! *   SNOW         snow                   kg m-2 second-1                *
-  ! *   RAIN         rain                   kg m-2 second-1                *
+  ! *   SF           snow fall              kg m-2 second-1                *
+  ! *   RF           rain fall              kg m-2 second-1                *
   ! ************************************************************************
 
     implicit none
@@ -47,13 +47,15 @@ SUBROUTINE write_output(lon_output, lat_output, snh_output, smb_output, melt_out
                 &refr_varid, albedo_varid,&
                 &snow_varid, rain_varid
 
-    character(len = *), parameter :: MELT_NAME = "MELT"
+    ! Define variables name
+    character(len = *), parameter :: MELT_NAME = "ME"
     character(len = *), parameter :: SNH_NAME = "SNH"
     character(len = *), parameter :: SMB_NAME = "SMB"
-    character(len = *), parameter :: REFR_NAME = "REFR"
+    character(len = *), parameter :: REFR_NAME = "RZ"
     character(len = *), parameter :: Albedo_NAME = "A"
-    character(len = *), parameter :: RAIN_NAME = "RAIN"
-    character(len = *), parameter :: SNOW_NAME = "SNOW"
+    character(len = *), parameter :: RAIN_NAME = "RF"
+    character(len = *), parameter :: SNOW_NAME = "SF"
+    ! Define variables units
     character(len = *), parameter :: UNITS = "units"
     character(len = *), parameter :: LON_UNITS = "degrees_east"
     character(len = *), parameter :: LAT_UNITS = "degrees_north"
@@ -62,9 +64,21 @@ SUBROUTINE write_output(lon_output, lat_output, snh_output, smb_output, melt_out
     character(len = *), parameter :: SNH_UNITS = "m"
     character(len = *), parameter :: SMB_UNITS = "kg m-2 second-1"
     character(len = *), parameter :: REFR_UNITS = "kg m-2 second-1"
-    character(len = *), parameter :: Albedo_UNITS = ""
+    ! character(len = *), parameter :: Albedo_UNITS = ""
     character(len = *), parameter :: RAIN_UNITS = "kg m-2 second-1"
     character(len = *), parameter :: SNOW_UNITS = "kg m-2 second-1"
+    ! Define variables longname
+    character(len = *), parameter :: LONGNAME = "long_name"
+    character(len = *), parameter :: LON_LONGNAME = "longitude"
+    character(len = *), parameter :: LAT_LONGNAME = "latitude"
+    character(len = *), parameter :: TIM_LONGNAME = "time"
+    character(len = *), parameter :: MELT_LONGNAME = "surface melt rate"
+    character(len = *), parameter :: SNH_LONGNAME = "snow height"
+    character(len = *), parameter :: SMB_LONGNAME = "total surface mass balance"
+    character(len = *), parameter :: REFR_LONGNAME = "refreezing rate"
+    character(len = *), parameter :: Albedo_LONGNAME = "albedo"
+    character(len = *), parameter :: RAIN_LONGNAME = "rain fall"
+    character(len = *), parameter :: SNOW_LONGNAME = "snow fall"
 
     NLONS = xlen
     NLATS = ylen
@@ -129,11 +143,15 @@ SUBROUTINE write_output(lon_output, lat_output, snh_output, smb_output, melt_out
     if (status .ne. nf_noerr) call handle_err(status)
     status = nf_put_att_text(ncid, snh_varid, UNITS, len(SNH_UNITS), SNH_UNITS)
     if (status .ne. nf_noerr) call handle_err(status)
+    status = nf_put_att_text(ncid, SNH_varid, LONGNAME, len_trim(SNH_LONGNAME), trim(SNH_LONGNAME))
+    if (status .ne. nf_noerr) call handle_err(status)
 
     ! melt
     status = nf_def_var(ncid, MELT_NAME, NF_FLOAT, NDIMS, (/x_dimid, y_dimid, t_dimid/), melt_varid)
     if (status .ne. nf_noerr) call handle_err(status)
     status = nf_put_att_text(ncid, melt_varid, UNITS, len(MELT_UNITS), MELT_UNITS)
+    if (status .ne. nf_noerr) call handle_err(status)
+    status = nf_put_att_text(ncid, MELT_varid, LONGNAME, len_trim(MELT_LONGNAME), trim(MELT_LONGNAME))
     if (status .ne. nf_noerr) call handle_err(status)
 
     ! smb
@@ -141,17 +159,23 @@ SUBROUTINE write_output(lon_output, lat_output, snh_output, smb_output, melt_out
     if (status .ne. nf_noerr) call handle_err(status)
     status = nf_put_att_text(ncid, smb_varid, UNITS, len(SMB_UNITS), SMB_UNITS)
     if (status .ne. nf_noerr) call handle_err(status)
+    status = nf_put_att_text(ncid, SMB_varid, LONGNAME, len_trim(SMB_LONGNAME), trim(SMB_LONGNAME))
+    if (status .ne. nf_noerr) call handle_err(status)
 
     ! refr
     status = nf_def_var(ncid, REFR_NAME, NF_FLOAT, NDIMS, (/x_dimid, y_dimid, t_dimid/), refr_varid)
     if (status .ne. nf_noerr) call handle_err(status)
     status = nf_put_att_text(ncid, refr_varid, UNITS, len(REFR_UNITS), REFR_UNITS)
     if (status .ne. nf_noerr) call handle_err(status)
+    status = nf_put_att_text(ncid, REFR_varid, LONGNAME, len_trim(REFR_LONGNAME), trim(REFR_LONGNAME))
+    if (status .ne. nf_noerr) call handle_err(status)
 
     ! albedo
     status = nf_def_var(ncid, Albedo_NAME, NF_FLOAT, NDIMS, (/x_dimid, y_dimid, t_dimid/), Albedo_varid)
     if (status .ne. nf_noerr) call handle_err(status)
-    status = nf_put_att_text(ncid, Albedo_varid, UNITS, len(Albedo_UNITS), Albedo_UNITS)
+    ! status = nf_put_att_text(ncid, Albedo_varid, UNITS, len(Albedo_UNITS), Albedo_UNITS)
+    ! if (status .ne. nf_noerr) call handle_err(status)
+    status = nf_put_att_text(ncid, Albedo_varid, LONGNAME, len_trim(Albedo_LONGNAME), trim(Albedo_LONGNAME))
     if (status .ne. nf_noerr) call handle_err(status)
 
     ! RAIN
@@ -159,11 +183,15 @@ SUBROUTINE write_output(lon_output, lat_output, snh_output, smb_output, melt_out
     if (status .ne. nf_noerr) call handle_err(status)
     status = nf_put_att_text(ncid, RAIN_varid, UNITS, len(RAIN_UNITS), RAIN_UNITS)
     if (status .ne. nf_noerr) call handle_err(status)
+    status = nf_put_att_text(ncid, RAIN_varid, LONGNAME, len_trim(RAIN_LONGNAME), trim(RAIN_LONGNAME))
+    if (status .ne. nf_noerr) call handle_err(status)
 
     ! SNOW
     status = nf_def_var(ncid, SNOW_NAME, NF_FLOAT, NDIMS, (/x_dimid, y_dimid, t_dimid/), SNOW_varid)
     if (status .ne. nf_noerr) call handle_err(status)
     status = nf_put_att_text(ncid, SNOW_varid, UNITS, len(SNOW_UNITS), SNOW_UNITS)
+    if (status .ne. nf_noerr) call handle_err(status)
+    status = nf_put_att_text(ncid, SNOW_varid, LONGNAME, len_trim(SNOW_LONGNAME), trim(SNOW_LONGNAME))
     if (status .ne. nf_noerr) call handle_err(status)
 
     ! Close define mode

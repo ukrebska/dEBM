@@ -1,6 +1,6 @@
 MODULE MOD_PRE
 ! ************************************************************************
-! * This MODULE reads info from namelists                                *
+! * Reads info from namelists                                            *
 ! ************************************************************************
 ! * MOD_PRE                                                              *
 ! *         | read_namelist                                              *
@@ -9,7 +9,9 @@ MODULE MOD_PRE
   integer, parameter :: WP=8 ! Working precision
 
   character(len=100), parameter :: nmlfile="namelist.debm"
-  real(kind=8) :: stddev, obliquity
+  real(kind=8) :: stddev, obliquity, cloud_bias,&
+                     &Ans, Ads, Aws, tau_cs
+
   character*300 :: filename_in
   character*20  :: precipitation_varname,&
                      &temperature_varname,&
@@ -28,7 +30,7 @@ contains
     ! ************************************************************************
     ! * read_namelist reads in namelists                                     *
     ! *                                                                      *
-    ! * debm                                                               *
+    ! * debm                                                                 *
     ! *       prescribed filename & variables names                          *
     ! * runctl                                                               *
     ! *       lresume: if or not restarted                                   *
@@ -46,17 +48,18 @@ contains
                     &emissivity_varname, transmissivity_varname,&
                     &mapping_varname,&
                     &longitude_varname, latitude_varname, time_varname,&
-                    &stddev, obliquity
+                    &stddev, obliquity, cloud_bias, &
+                    &Ans, Ads, Aws, tau_cs
 
   namelist /runctl/ lresume, use_shortwave_radiation_TOA, use_mask, &
                     &debug_switch, &
                     &debug_lon, debug_lat, debug_mon, debug_year
 
-    ! read information from namelist
-    open(10, file=nmlfile, status='old' )
-    read(10, nml=runctl)
-    read(10, nml=debm)
-    close(10)
+  ! read information from namelist
+  open(10, file=nmlfile, status='old' )
+  read(10, nml=runctl)
+  read(10, nml=debm)
+  close(10)
 
   if (debug_switch) then
     ! runctl
@@ -68,6 +71,7 @@ contains
     ! debm
     write(*,*) "stddev",stddev
     write(*,*) "obliquity",obliquity
+    write(*,*) "cloud_bias",cloud_bias
     write(*,*) "filename_in:",trim(filename_in)
     write(*,*) "precipitation_varname:",precipitation_varname
     write(*,*) "temperature_varname:",temperature_varname
