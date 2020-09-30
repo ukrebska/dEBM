@@ -1,16 +1,19 @@
 &runctl
-lresume=.true.
-use_shortwave_radiation_TOA=.true.
-use_mask=.false.
-debug_switch=.false.
-debug_lon=241
-debug_lat=107
-debug_mon=12
+lresume=.true.       ! if restart, read snow height from 'restart_debm.nc'
+                     ! .false. by default
+use_shortwave_radiation_TOA=.true.  ! if incorporate top incoming shortwave
+use_mask=.false.     ! ice mask
+debug_switch=.false. ! debug option
+                     ! .false. by default
+debug_lon=241        ! if debug_switch=.true.
+debug_lat=107        ! debug grid point(debug_lon,debug_lat,debug_mon,debug_year)
+debug_mon=12         ! will be print during simulation
 debug_year=1
 /
 
 &debm
-filename_in='test.nc'
+filename_in='test.nc' ! input filename
+
 precipitation_varname='precipitation'
 temperature_varname='air_temp'
 shortwave_radiation_downward_varname='swd'
@@ -22,9 +25,10 @@ mapping_varname='thk'
 longitude_varname='lon'
 latitude_varname='lat'
 time_varname='time'
-stddev=3.5
-obliquity=23.446
-cloud_bias=0.155
+
+stddev=3.5        ! constant standard deveation
+obliquity=23.446  ! obliquity
+cloud_bias=0.155  ! cloud bias
 Ans    = .845     ! Albedo for new snow
 Ads    = .73      ! Albedo for dry snow
 Aws    = .55      ! Albedo for wet snow
