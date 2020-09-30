@@ -9,7 +9,8 @@ Installation
 =============
 
 1. get the code :
-   git clone https://github.com/ukrebska/dEBM/tree/update/Fortran-v1.0 dEBM   
+   
+   git clone https://github.com/ukrebska/dEBM/tree/update/Fortran-v1.0 dEBM    
    cd dEBM
 
 2. prepare the input:
