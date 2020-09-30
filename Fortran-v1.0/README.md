@@ -5,32 +5,34 @@ The diurnal Energy Balance Model (dEBM) is an surface mass balance model of inte
 
 If you have some questions, please contact Uta Krebs-Kanzow <ukrebska@awi.de> or Shan Xu <shan.xu@awi.de>
 
-Installation
+Getting Started with dEBM
 =============
 
-cd $HOME
-
-1. get the code :
-   git clone https://github.com/ukrebska/dEBM/tree/update/Fortran-v1.0 dEBM   
+1. download the code :
+   
+   git clone https://github.com/ukrebska/dEBM/tree/update/Fortran-v1.0 dEBM    
    cd dEBM
 
 2. prepare the input:
+   
    EXAMPLE input files: test.nc (include air_temp precipitation cc swd TOAswd emiss tau q2m)
 
-3. path for the results:
+   edit namelist of dEBM:
+      vi namelist.dEBM:
+          & dEBM : filename_in='test.nc'
+
+   path for the results:
    ./
 
-4. edit namelist of dEBM:
-   vi namelist.dEBM:
-       & dEBM : filename_in='test.nc'
-
-5. compile the code:
+3. compile the code:
+   
    make comp
 
-6. run the model:
+4. run the model:
+   
    make run
 
-7. investigate the results:
+5. investigate the results:
    output: surface_mass_balance.nc
    restart: restart_debm.nc
 
