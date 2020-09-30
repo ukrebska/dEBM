@@ -24,9 +24,11 @@ Installation
    ./
 
 3. compile the code:
+   
    make comp
 
 4. run the model:
+   
    make run
 
 5. investigate the results:
