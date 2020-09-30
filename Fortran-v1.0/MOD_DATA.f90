@@ -1,6 +1,7 @@
 MODULE MOD_DATA
 ! ************************************************************************
-! * This MODULE reads the initail files for dEBM                         *
+! * Reads the input atmospheric fields for dEBM                          *
+! *    | get_init                                                        *
 ! ************************************************************************
 ! * MOD_DATA                                                             *
 ! *    | get_init                                                        *
@@ -72,6 +73,12 @@ contains
     mlen=12        ! length of month
     nlen=tlen/mlen ! length of year
 
+    write(*,*) "******************"
+    write(*,*) "WARNING:"
+    write(*,*) "This scheme is specifically generated for AWI-ESM-2.2-LR,"
+    write(*,*) "for other input, units needs to be carefully checked!!!"
+    write(*,*) "******************"
+
     ! inflating latitude into four dimensions
     allocate (lat(xlen,ylen,mlen,nlen))
     do i = 1, mlen
@@ -80,26 +87,21 @@ contains
         end do
     end do
 
-   ! get get_shortwave_radiation_downward
-    CALL get_shortwave_radiation_downward
+    ! determine if debug option is on
     if (debug_switch) then
       if ((debug_lon>xlen) .OR. (debug_lat>ylen)) then
         write(*,*) "debug lon or lat is out of range.."
         write(*,*) "plz turn of debug option by set debug_switch=.false."
         debug_switch=.false.
-      else
-        write(*,*) "survive reading shortwave_radiation_downward"
-        write(*,*) "shortwave_radiation_downward1",shortwave_radiation_downward1(debug_lon, debug_lat, debug_mon, debug_year)
       end if
     end if
+
+   ! get get_shortwave_radiation_downward
+    CALL get_shortwave_radiation_downward
 
     ! get shortwave_radiation_TOA
     if (use_shortwave_radiation_TOA) then
       CALL get_shortwave_radiation_TOA
-      if (debug_switch) then
-        write(*,*) "survive reading shortwave_radiation_TOA1"
-        write(*,*) "shortwave_radiation_TOA1",shortwave_radiation_TOA1(debug_lon, debug_lat, debug_mon, debug_year)
-      end if
     else
       write(*,*) "not incoprate shortwave_radiation_TOA..."
       allocate (shortwave_radiation_TOA1(xlen,ylen,mlen,nlen))
@@ -108,45 +110,22 @@ contains
 
     ! get get_surface_temperature
     CALL get_surface_temperature
-    if (debug_switch) then
-      write(*,*) "survive reading surface_temperature1"
-      write(*,*) "surface_temperature1",surface_temperature1(debug_lon, debug_lat, debug_mon, debug_year)
-    end if
 
     ! get get_precipitation
     CALL get_precipitation
-    if (debug_switch) then
-      write(*,*) "survive reading precipitation"
-      write(*,*) "precipitation",precipitation1(debug_lon, debug_lat, debug_mon, debug_year)
-    end if
 
     ! get get_cloud_cover
     CALL get_cloud_cover
-    if (debug_switch) then
-      write(*,*) "survive reading surface_temperature1"
-      write(*,*) "cloud_cover1",cloud_cover1(debug_lon, debug_lat, debug_mon, debug_year)
-    end if
 
     ! get get_emissivity
     CALL get_emissivity
-    if (debug_switch) then
-      write(*,*) "survive reading surface_temperature1"
-      write(*,*) "emissivity1",emissivity1(debug_lon, debug_lat, debug_mon, debug_year)
-    end if
 
     ! get get_transmissivity
     CALL get_transmissivity
-    if (debug_switch) then
-      write(*,*) "survive reading transmissivity1"
-      write(*,*) "transmissivity1",transmissivity1(debug_lon, debug_lat, debug_mon, debug_year)
-    end if
 
     ! mask
     if (use_mask) then
       CALL get_mask
-      if (debug_switch) then
-        write(*,*) "survive reading mask"
-      end if
     else
       write(*,*) "do not use mask..."
       allocate (mask1(xlen, ylen, tlen))
@@ -160,7 +139,10 @@ contains
 
 
     SUBROUTINE get_dimension
+      ! ************************************************************************
       ! get_dimension x & y & t and lon & lat
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
       integer			:: timeid, lonid, latid
@@ -208,7 +190,10 @@ contains
 
 
     SUBROUTINE get_shortwave_radiation_downward
-      ! shortwave_radiation_downward
+      ! ************************************************************************
+      ! *   shortwave_radiation_downward        W/m2                           *
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -239,7 +224,10 @@ contains
 
 
     SUBROUTINE get_shortwave_radiation_TOA
-      ! get_shortwave_radiation_TOA
+      ! ************************************************************************
+      ! *   shortwave_radiation_TOA (optional)  W/m2                           *
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -270,7 +258,10 @@ contains
 
 
     SUBROUTINE get_surface_temperature
-      ! get surface_temperature
+      ! ************************************************************************
+      ! *   surface_temperature                 K or degC                      *
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -324,7 +315,10 @@ contains
 
 
     SUBROUTINE get_precipitation
-      ! get precipitation
+      ! ************************************************************************
+      ! *   precipitation                       kg m-2 second-1 or mm day-1    *
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -376,7 +370,10 @@ contains
 
 
     SUBROUTINE get_cloud_cover
-      ! cloud_cover
+      ! ************************************************************************
+      ! *   cloud_cover                         %                              *
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -406,7 +403,10 @@ contains
 
 
     SUBROUTINE get_emissivity
-      ! emissivity
+      ! ************************************************************************
+      ! *   emissivity                                                         *
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -436,7 +436,10 @@ contains
 
 
     SUBROUTINE get_transmissivity
-      ! transmissivity
+      ! ************************************************************************
+      ! *   transmissivity                                                     *
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -466,7 +469,10 @@ contains
 
 
     SUBROUTINE get_mask
+      ! ************************************************************************
       ! mask
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
 
@@ -496,7 +502,10 @@ contains
 
 
     SUBROUTINE handle_err(errcode)
+      ! ************************************************************************
       ! handle error in read or write netcdf files
+      ! ************************************************************************
+
       implicit none
       include 'netcdf.inc'
       integer :: errcode

@@ -1,5 +1,5 @@
 &runctl
-lresume=.false.
+lresume=.true.
 use_shortwave_radiation_TOA=.true.
 use_mask=.false.
 debug_switch=.false.
@@ -24,4 +24,9 @@ latitude_varname='lat'
 time_varname='time'
 stddev=3.5
 obliquity=23.446
+cloud_bias=0.155
+Ans    = .845     ! Albedo for new snow
+Ads    = .73      ! Albedo for dry snow
+Aws    = .55      ! Albedo for wet snow
+tau_cs = .75      ! expected clear sky transmissivity
 /
