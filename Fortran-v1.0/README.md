@@ -8,7 +8,7 @@ If you have some questions, please contact Uta Krebs-Kanzow <ukrebska@awi.de> or
 Getting Started with dEBM
 =============
 
-1. get the code :
+1. download the code :
    
    git clone https://github.com/ukrebska/dEBM/tree/update/Fortran-v1.0 dEBM    
    cd dEBM
