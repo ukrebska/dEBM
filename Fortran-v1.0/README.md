@@ -9,12 +9,12 @@ Getting Started with dEBM
 =============
 
 1. download the code :
-   
+
    git clone https://github.com/ukrebska/dEBM/tree/update/Fortran-v1.0 dEBM    
    cd dEBM
 
 2. prepare the input:
-   
+
    EXAMPLE input files: test.nc (include air_temp precipitation cc swd TOAswd emiss tau q2m)
 
    edit namelist of dEBM:
@@ -25,11 +25,11 @@ Getting Started with dEBM
    ./
 
 3. compile the code:
-   
+
    make comp
 
 4. run the model:
-   
+
    make run
 
 5. investigate the results:
@@ -40,3 +40,5 @@ References
 ==========
 
 1. Krebs-Kanzow, U., Gierz, P., and Lohmann, G.: Brief communication: An ice surface melt scheme including the diurnal cycle of solar radiation, The Cryosphere, 12, 3923–3930, https://doi.org/10.5194/tc-12-3923-2018, 2018.
+
+2. Krebs-Kanzow, U., Gierz, P., Rodehacke, C. B., Xu, S., Yang, H., and Lohmann, G.: The diurnal Energy Balance Model (dEBM): A convenient surface mass balance solution for ice sheets in Earth System modeling, The Cryosphere Discuss., https://doi.org/10.5194/tc-2020-247, in review, 2020.
