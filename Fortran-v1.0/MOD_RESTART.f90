@@ -44,6 +44,7 @@ SUBROUTINE write_restart(SNH_Sep, SNH_Dec)
     character(len = *), parameter :: SNH_Sep_UNITS = "mm"
     character(len = *), parameter :: SNH_Dec_UNITS = "mm"
 
+    write(*,*) " "
     write(*,*) "Start writing restart files"
 
     NLONS = xlen
@@ -97,6 +98,7 @@ SUBROUTINE write_restart(SNH_Sep, SNH_Dec)
     status=nf_close(ncid)
     if (status .ne. nf_noerr) call handle_err(status)
 
+    write(*,*) " "
     write(*,*) "Finish writing restart files"
 
   END SUBROUTINE write_restart

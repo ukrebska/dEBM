@@ -1,9 +1,10 @@
 PROGRAM dEBMmain
   !******************************************************************************
   ! please cite:
-  ! Krebs-Kanzow, U., Gierz, P., and Lohmann, G.: Brief communication:
-  ! An ice surface melt scheme including the diurnal cycle of solar radiation,
-  ! The Cryosphere, 12, 3923–3930, https://doi.org/10.5194/tc-12-3923-2018, 2018.
+  ! Krebs-Kanzow, U., Gierz, P., Rodehacke, C. B., Xu, S., Yang, H., and Lohmann, G.:
+  ! The diurnal Energy Balance Model (dEBM):
+  ! A convenient surface mass balance solution for ice sheets in Earth System modeling,
+  ! The Cryosphere Discuss., https://doi.org/10.5194/tc-2020-247, in review, 2020.
   !******************************************************************************
   ! Main calculations for dEBM
   !  | MOD_PRE: reads initial prescribed parameters from namelists
@@ -26,14 +27,12 @@ PROGRAM dEBMmain
   integer :: n
   integer :: mth_str
 
-  real(kind=WP), dimension(:,:), allocatable     :: snh_tmp, snh_lastyear
+  real(kind=WP), dimension(:,:), allocatable     :: snh_Dec, snh_Sep
   real(kind=WP), dimension(:,:,:,:), allocatable ::  snow_height, surface_mass_balance, &
                                               &melt_rate, accmulation_rate, &
                                               &refreeze_rate, albedo,&
                                               &snow_amount, rain_rate
   real(kind=WP), dimension(:), allocatable :: summer_solar_density
-
-  write(*,*) "================== Begin =================="
 
   write(*,*) "Starting calculating dEBM..."
 
@@ -42,10 +41,6 @@ PROGRAM dEBMmain
 
   write(*,*) "Reading in atmosphere fields...."
   CALL get_init
-
-  ! init snow height
-  allocate (snh_tmp( xlen, ylen))
-  allocate (snh_lastyear( xlen, ylen))
 
   ! init main SMB components
   allocate (snow_height( xlen, ylen, mlen, nlen))
@@ -68,54 +63,63 @@ PROGRAM dEBMmain
   summer_solar_density(:)       = 0.0_WP
 
   ! Init snow height from restart or spin-up
+  allocate (snh_Dec( xlen, ylen))
+  allocate (snh_Sep( xlen, ylen))
   n=1
   if ((n==1) .AND. (lresume==.true.))then
     ! For a warm start, read the snow height from restart file
+    write(*,*) " "
     write(*,*) "We are doing a restart."
-    CALL read_restart(snh_tmp, snh_lastyear)
+    write(*,*) " "
+    CALL read_restart(snh_Sep, snh_Dec)
   else
     ! For a cold start, we'll do spin–up based on the first 15 months
+    write(*,*) " "
     write(*,*) "We are doing a cold start."
     write(*,*) "The first 15 months is regarded as spin-up as default."
     write(*,*) "If you want to restart, plz prescribe 'lresume=.true.' in the namelist"
     ! First, we integrate from <Sep to Dec>; then use the forcing of the first year for another 12-month cycles.
     ! init snow height with no snow cover
-    snh_tmp(:,:)      = 0.0_WP
-    snh_lastyear(:,:) = 0.0_WP
-    ! First, we calculate the first year from Oct to Dec
-    mth_str = 9     ! start from Sep
+    snh_Dec(:,:) = 0.0_WP
+    snh_Sep(:,:) = 0.0_WP
+    ! First, we calculate the first year from Oct, the beginning of hydrological year
+    mth_str = hydmth_str
     CALL dEBM_core(surface_temperature1(:,:,:,n), &
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
-                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_tmp, snh_lastyear, &
+                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
                     &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), albedo(:,:,:,n), &
                     &snow_amount(:,:,:,n), rain_rate(:,:,:,n), summer_solar_density(n))
-    snh_tmp      = snow_height(:,:,12,1)
-    snh_lastyear = snow_height(:,:,9,1)
+    snh_Dec = snow_height(:,:,12,1)
+    snh_Sep = snow_height(:,:,9,1)
     ! Second, we recalculate the first year from Jan to Dec
     mth_str = 1     ! start from Jan
     CALL dEBM_core(surface_temperature1(:,:,:,n), &
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
-                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_tmp, snh_lastyear, &
+                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
                     &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), albedo(:,:,:,n), &
                     &snow_amount(:,:,:,n), rain_rate(:,:,:,n), summer_solar_density(n))
-    snh_tmp      = snow_height(:,:,12,1)
-    snh_lastyear = snow_height(:,:,9,1)
+    snh_Dec = snow_height(:,:,12,1)
+    snh_Sep = snow_height(:,:,9,1)
+    write(*,*) "Finish spin-up"
+    write(*,*) " "
   end if
 
   ! Actual simulation
   do n=1, nlen
-    write(*,*) "calculates year",n
+    write(*,*) " "
+    write(*,*) " dEBM ========================= "
+    write(*,*) "year",n
     mth_str = 1
     CALL dEBM_core(surface_temperature1(:,:,:,n), &
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
-                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_tmp, snh_lastyear, &
+                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
                     &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), albedo(:,:,:,n), &
                     &snow_amount(:,:,:,n), rain_rate(:,:,:,n), summer_solar_density(n))
-    snh_tmp      = snow_height(:,:,12,n)
-    snh_lastyear = snow_height(:,:,9,n)
+    snh_Dec = snow_height(:,:,12,n)
+    snh_Sep = snow_height(:,:,9,n)
   end do
 
   ! Debug
@@ -128,7 +132,7 @@ PROGRAM dEBMmain
   end if
 
   ! Write restart
-  CALL write_restart(snh_tmp, snh_lastyear)
+  CALL write_restart(snh_Sep, snh_Dec)
 
   ! Convert output data to expected units
   snow_height           = snow_height/1000.                         ! SNH: convert units from "mm" to "m"
@@ -141,7 +145,5 @@ PROGRAM dEBMmain
   CALL write_output(lon0, lat0, snow_height, surface_mass_balance, melt_rate,&
                       &refreeze_rate, albedo,&
                       &snow_amount, rain_rate)
-
-  write(*,*) "================== Done =================="
 
 END PROGRAM dEBMmain

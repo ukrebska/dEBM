@@ -73,11 +73,11 @@ contains
     mlen=12        ! length of month
     nlen=tlen/mlen ! length of year
 
-    write(*,*) "******************"
+    write(*,*) " "
     write(*,*) "WARNING:"
     write(*,*) "This scheme is specifically generated for AWI-ESM-2.2-LR,"
     write(*,*) "for other input, units needs to be carefully checked!!!"
-    write(*,*) "******************"
+    write(*,*) " "
 
     ! inflating latitude into four dimensions
     allocate (lat(xlen,ylen,mlen,nlen))
