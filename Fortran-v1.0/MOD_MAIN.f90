@@ -40,19 +40,19 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     ! latm     : latitude
     ! mask     : ice mask
     ! obl      : obliquity
-    ! mth_str  : list of month (first year [9:12 1:12], then [1:12])
+    ! mth_str  : list of month (first year [10:12 1:12], then [1:12])
     !*****************************************************************************
     ! output:
-    ! SNH      : snow height in mm
+    ! SNH      : snow height (mm)
     ! SMB      : surface mass balance (mm/day)
     ! MELT     : melt (mm/day)
-    ! REFR     : refreezing (mm/day)
+    ! REFR     : refreeze (mm/day)
     ! A        : Albedo
     ! SNOW     : solid precipitation (mm/day)
     ! RAIN     : liquid precipitation (mm/day)
-    ! S07      : summer solar density flux (TOA), just to check
+    ! S07      : summer solar density flux in July, for check
     ! tmpSNH   : December month's snow height (mm)
-    ! lastyear :  September's snow height (mm)
+    ! lastyear : September's snow height (mm)
     !******************************************************************************
 
     integer, intent(in) :: mth_str
@@ -62,7 +62,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
                                                         &emissm, clcov, ppm, latm
 
     real(kind=WP), intent(inout), dimension(:,:,:) :: swd_TOAm   ! if the swd_TOAm is not input
-                                                                 ! the input field will be zero, then recalculate
+                                                                 ! swd_TOAm will be set to constant, then recalculate
     real(kind=WP), intent(inout), dimension(:,:)   :: tmpSNH, lastyear ! snow height of December and September need to be saved
     real(kind=WP), intent(out), dimension(:,:,:)   :: SNH, SMB, MELT, REFR, &
                                                         &A, SNOW, RAIN
@@ -70,18 +70,16 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
 
     !  Define parameters
     real(kind=WP), parameter :: slim   = 7.       ! melt/refreeze threshold
-    real(kind=WP), parameter :: lhf    = 0       ! residual heat flux (e.g. due to flux into the ice sheet
-    real(kind=WP), parameter :: epsi = .98     ! emissivity of ice
-   ! emissivity depends on cloud cover and greenhouse gases (incl. water vapor)
-    real(kind=WP), parameter :: epsa_cs = .78     ! eps_cs = emiss_cs + emiss_gas (Sedlar & Hock, 2009)
-    real(kind=WP) :: epsa_oc                      ! eps_oc = eps_cs + cloud_bias       (Konig-Langlo, 1994)
-    real(kind=WP), parameter :: beta   = 10.     ! turbulent heat transfer coeff
-    real(kind=WP), parameter :: bolz   = 5.67e-8 ! Stefan-Boltzmann constant
-    real(kind=WP), parameter :: T0     = 273.15  ! melt point in K
-    real(kind=WP), parameter :: Tmin   = -6.5    ! background melt condition
+    real(kind=WP), parameter :: epsi = .98        ! emissivity of ice
+    real(kind=WP), parameter :: epsa_cs = .78     ! emissivity depends on cloud cover and greenhouse gases (incl. water vapor)
+    real(kind=WP) :: epsa_oc                      ! eps_oc = epsa_cs + cloud_bias  (Konig-Langlo, 1994)
+    real(kind=WP), parameter :: beta   = 10.      ! turbulent heat transfer coeff
+    real(kind=WP), parameter :: bolz   = 5.67e-8  ! Stefan-Boltzmann constant
+    real(kind=WP), parameter :: T0     = 273.15   ! melt point in K
+    real(kind=WP), parameter :: Tmin   = -6.5     ! background melt condition
 
     integer :: month
-    real :: ml
+    integer :: ml
     real(kind=WP), allocatable, dimension(:,:) :: hoursns, qns, fluxfacns,&
                                             &hoursds, qds, fluxfacds,&
                                             &hoursws, qws, fluxfacws,&
@@ -97,105 +95,75 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     real(kind=WP), allocatable, dimension(:,:) :: MELTds, PREFRds
     real(kind=WP), allocatable, dimension(:,:) :: MELTws, PREFRws, snh_est
     logical, allocatable, dimension(:,:) :: old_wet, new_snow, dry_snow, wet_snow
-    real(kind=WP), allocatable, dimension(:,:,:) :: ff
+    real(kind=WP), allocatable, dimension(:,:,:) :: swd_sfc
     real(kind=WP), dimension(12) :: S0
     integer, dimension(3) :: min_lat_idx
     real :: swd_lat_min, fluxfactor
 
+    !
     allocate (hoursns(xlen, ylen), qns(xlen, ylen), fluxfacns(xlen, ylen))
+    hoursns=0.0_WP; qns=0.0_WP; fluxfacns=0.0_WP
     allocate (hoursds(xlen, ylen), qds(xlen, ylen), fluxfacds(xlen, ylen))
+    hoursds=0.0_WP; qds=0.0_WP; fluxfacds=0.0_WP
     allocate (hoursws(xlen, ylen), qws(xlen, ylen), fluxfacws(xlen, ylen))
-    hoursns=0.0_WP
-    qns=0.0_WP
-    fluxfacns=0.0_WP
-    hoursds=0.0_WP
-    qds=0.0_WP
-    fluxfacds=0.0_WP
-    hoursws=0.0_WP
-    qws=0.0_WP
-    fluxfacws=0.0_WP
+    hoursws=0.0_WP; qws=0.0_WP; fluxfacws=0.0_WP
     !
     allocate (temp(xlen, ylen))
     allocate (PDD(xlen, ylen))
     allocate (tmpmask(xlen, ylen))
     allocate (solid(xlen, ylen))
-    !
     allocate (cc(xlen, ylen))
-    !
-    allocate (swd(xlen, ylen))
-    allocate (swd_TOA(xlen, ylen))
-    allocate (swd_cs(xlen, ylen))
-    allocate (swd_oc(xlen, ylen))
-
-    allocate (tau(xlen, ylen))
-    allocate (tau_oc(xlen, ylen))
-
-    allocate (emiss(xlen, ylen))
-    allocate (emiss_gas(xlen, ylen))
-    allocate (epsa_cst(xlen, ylen))
-    allocate (epsa_oct(xlen, ylen))
-    !
-    allocate (MELTns(xlen, ylen))
-    allocate (PREFRns(xlen, ylen))
-    allocate (MELTds(xlen, ylen))
-    allocate (PREFRds(xlen, ylen))
-    allocate (MELTws(xlen, ylen))
-    allocate (PREFRws(xlen, ylen))
-    !
-    allocate (old_wet(xlen, ylen))
-    allocate (new_snow(xlen, ylen))
-    allocate (dry_snow(xlen, ylen))
-    allocate (wet_snow(xlen, ylen))
-    !
-    allocate (c1cs(xlen, ylen))
-    allocate (c2cs(xlen, ylen))
-    allocate (c1oc(xlen, ylen))
-    allocate (c2oc(xlen, ylen))
-    !
+    allocate (swd(xlen, ylen), swd_TOA(xlen, ylen), swd_cs(xlen, ylen), swd_oc(xlen, ylen))
+    allocate (tau(xlen, ylen), tau_oc(xlen, ylen))
+    allocate (emiss(xlen, ylen), emiss_gas(xlen, ylen), epsa_cst(xlen, ylen), epsa_oct(xlen, ylen))
+    allocate (MELTns(xlen, ylen), PREFRns(xlen, ylen), MELTds(xlen, ylen), PREFRds(xlen, ylen), MELTws(xlen, ylen), PREFRws(xlen, ylen))
+    allocate (old_wet(xlen, ylen), new_snow(xlen, ylen), dry_snow(xlen, ylen), wet_snow(xlen, ylen))
+    allocate (c1cs(xlen, ylen), c2cs(xlen, ylen), c1oc(xlen, ylen), c2oc(xlen, ylen))
     allocate (snh_est(xlen, ylen))
 
-    ! epsa_oc
-    epsa_oc = epsa_cs + cloud_bias
+     ! assume that atmospheric emissivity independently depends on greenhouse gas concentration (which is primarily water vapor) and cloud cover
+     ! (Konig-Langlo, 1994)
+     ! see Krebs-Kanzow et al, 2020 , section 2.4
+     epsa_oc = epsa_cs + cloud_bias        !
 
-    ! Summer solar flux density
-    S0(1:12)=1330.0_WP
-    ! TODO:
-    ! S0 should be a variable funct. f(eccentricity, longitude of perihelion,
-    ! declination) for paleo applications we can calculate it from SWD_TOA
-    ! ideally we should improve the calculations of the declination and S0
-
-    allocate (ff(xlen, ylen, mlen))
-    ff = 0.0_WP
+     ! calculate surface incoming shortwave radiation
+    allocate (swd_sfc(xlen, ylen, mlen))
+    swd_sfc = 0.0_WP
     do month=1, 12
-      CALL dEBM_fluxfac(month, latm(:,:,month), obl, ff(:,:,month))
+      CALL dEBM_fluxfac(month, latm(:,:,month), obl, swd_sfc(:,:,month))
     end do
 
-    ! if swd_TOA is not given, S0 is constant 1330
-    ! if swd_TOA is given, we estimate summer S0 from swd_TOA at 65N
-    ! Here, we use 65N, because insolation at 65N can be compared to literature just to doublecheck
-    ! TODO: at some point we should calculate this from orbital parameters
+    ! Summer solar flux density
+    ! S0 should be a variable funct. f(eccentricity, longitude of perihelion, declination)
+    ! for paleo applications we can calculate it from SWD_TOA
+    ! ideally we should improve the calculations of the declination and S0
+    ! S0(1:12)=1330.0_WP
     if (use_shortwave_radiation_TOA) then
+      ! if swd_TOA is given, we estimate summer S0 from swd_TOA at 65N
+      ! Here, we use 65N, because insolation at 65N can be compared to literature just to doublecheck
+      ! TODO: at some point we should calculate this from orbital parameters
       min_lat_idx=minloc(abs(latm(:,:,:)-65.0_WP))     ! locate 65N
       do month=5, 9
-        fluxfactor = ff(min_lat_idx(1),min_lat_idx(2),month)
-        swd_lat_min = swd_TOAm(min_lat_idx(1),min_lat_idx(2),month)
-        if (swd_lat_min>100.0_WP) then
-          S0(month) = swd_lat_min/fluxfactor
-        end if
+        fluxfactor = swd_sfc(min_lat_idx(1),min_lat_idx(2),month)        ! incoming surface SW at 65N
+        swd_lat_min = swd_TOAm(min_lat_idx(1),min_lat_idx(2),month)      ! TOA SW at 65N
+        if (swd_lat_min>100.0_WP) S0(month) = swd_lat_min/fluxfactor     !
       end do
-    else
+     else
+      ! if swd_TOA is not given, swd_TOAm is recalculated based on solar flux density and daily insolation
+      swd_TOAm(:,:,month)=0.0_WP
+      ! S0(1:12)=1365.0_WP
       do month = 1, 12
-        swd_TOAm(:,:,month) = (S0(month)*ff(:,:,month))
+        S0(month)= (1365.0_WP*(1+.034*cos(((month-1.0_WP)*mth_len(month)+15.0_WP)/365.25*2.0_WP*pi))) ! approx. solar flux density
+        swd_TOAm(:,:,month) = (S0(month)*swd_sfc(:,:,month))
       end do
-    end if
-
+     end if
     ! debug
     if (debug_switch) then
       write(*,*) "swd_TOAm",swd_TOAm(debug_lon, debug_lat,month)
     end if
 
-    S07 = S0(7)
     ! initialization
+    S07 = S0(7)
     SMB(:,:,:)    = 0.0_WP
     SNH(:,:,:)    = 0.0_WP
     MELT(:,:,:)   = 0.0_WP
@@ -209,16 +177,13 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
 
       write(*,*) "calculates month", month
 
-      ! TODO: set 30.5 for comparsion
-      ! otherwise, use the real length of each month
-      ! AND also make sure type of ml is integer! (Line 365-366)
-      ! ml      = mth_len(month)
-      ml      = 30.5
+      ml      = mth_len(month)
       cc      = clcov(:,:,month)
       swd     = swdm(:,:,month)
-      emiss     = emissm(:,:,month)
+      emiss   = emissm(:,:,month)
       swd_TOA = swd_TOAm(:,:,month)
       tmpmask = ((tempm(:,:,month) > -6.5) .AND. (mask(:,:,month)))
+
       CALL PDD4(temp, stddev, PDD)
       where (.NOT. tmpmask) PDD = 0.
 
@@ -233,9 +198,9 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
         write(*,*) "PDD",PDD(debug_lon, debug_lat)
       end if
 
-      ! to determine the fraction of solid and liquid water in precipitation
-      ! snow&rain  fractionation acc. to Pipes & Quick 1977
-      ! solid
+      ! to determine the fraction of snow (solid) and rain (liquid water) in precipitation
+      ! acc. to Pipes & Quick 1977
+      ! see Krebs-Kanzow et al, 2020 sect. 2.4
       where (tempm(:,:,month)>slim)
         solid = 0.0_WP
       elsewhere (tempm(:,:,month)<-slim)
@@ -252,55 +217,44 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
         write(*,*) "RAIN",RAIN(debug_lon, debug_lat, month)
       end if
 
-      ! monthly mean transmissiv.
-      ! in winter & avoid numeric problems when TOA ~ 0
-
-      ! shortwave radiation of clear sky and cloudy days
-      ! on higher elevation it may happen that tau>tau_cs
-      ! also we take care of extremely clear months (probably never a problem)
-      swd_cs = swd ! max(tau_cs*S0(month)*ff(:,:,month), swd)
+      ! shortwave radiation of fair and cloudy days
+      ! see Krebs-Kanzow et al, 2020 sect. 2.4
+      swd_cs = swd
       swd_oc = swd
       epsa_cst  = emiss
       epsa_oct  = emiss
       emiss_gas = emiss-(1-cc)*epsa_cs-cc*epsa_oc
-
-      where (cc>.9_WP)
-        cc       = 1
-      elsewhere (cc>=.1_WP)
-        !
-        swd_cs = max(tau_cs*S0(month)*ff(:,:,month),swd)
+      !
+      where (cc>.9_WP)      ! cc>0.9 cloudy
+        cc       = 1.0
+      elsewhere (cc>=.1_WP) ! calcualtes cloudy and fair separately
+        swd_cs = max(tau_cs*S0(month)*swd_sfc(:,:,month),swd)   ! on higher elevation it may happen that tau>tau_cs
         swd_oc = (swd-(swd_cs*(1-cc)))/cc
-        !
         epsa_cst = epsa_cs + emiss_gas
         epsa_oct = epsa_oc + emiss_gas
-      elsewhere
-        cc       = 0
+      elsewhere            ! cc<0.1 fair days
+        cc       = 0.0
       end where
-
-      !
       if (debug_switch) then
         write(*,*) "swd_oc",swd_oc(debug_lon, debug_lat)
-      end if
-      !
-      if (debug_switch) then
         write(*,*) "tau_oc",tau_oc(debug_lon, debug_lat)
         write(*,*) "epsa_oct",epsa_oct(debug_lon, debug_lat)
       end if
 
       ! c1, c2 are determined locally and monthly
-      c2cs = (-epsi+epsa_cst*epsi)*bolz*(T0**4)-lhf
+      ! see Krebs-Kanzow et al, 2018
+      c2cs = (-epsi+epsa_cst*epsi)*bolz*(T0**4)-residual
       c1cs = (epsi*epsa_cst*4.*bolz*(T0**3)+beta)
-      c2oc = (-epsi+epsa_oct*epsi)*bolz*(T0**4)-lhf
+      c2oc = (-epsi+epsa_oct*epsi)*bolz*(T0**4)-residual
       c1oc = (epsi*epsa_oct*4.*bolz*(T0**3)+beta)
-
       winkelns = asin(-c2cs/(1.0_WP-Ans)/(S0(month)*tau_cs))*180.0_WP/pi
       winkelds = asin(-c2cs/(1.0_WP-Ads)/(S0(month)*tau_cs))*180.0_WP/pi
       winkelws = asin(-c2cs/(1.0_WP-Aws)/(S0(month)*tau_cs))*180.0_WP/pi
 
+      ! calculate melt period and effective insolation
       CALL dEBM_sunny_hours_c(month, winkelns, latm(:,:,month), obliquity, hoursns, qns, fluxfacns)
       CALL dEBM_sunny_hours_c(month, winkelds, latm(:,:,month), obliquity, hoursds, qds, fluxfacds)
       CALL dEBM_sunny_hours_c(month, winkelws, latm(:,:,month), obliquity, hoursws, qws, fluxfacws)
-      !
       if (debug_switch) then
         write(*,*) "c2cs",c2cs(debug_lon, debug_lat)
         write(*,*) "c1cs",c1cs(debug_lon, debug_lat)
@@ -312,34 +266,33 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
         write(*,*) "fluxfacns",fluxfacns(debug_lon, debug_lat)
       end if
 
-      ! MELT + REFR
+      ! calculate MELT & REFR based on Q for all SurfaceTypes
+      ! see Krebs-Kanzow et al, 2020 sect. 2.6
       CALL dEBMmodel_fullrad(Ans, Ans+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursns, qns, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTns, PREFRns)
       CALL dEBMmodel_fullrad(Ads, Ads+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursds, qds, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTds, PREFRds)
       CALL dEBMmodel_fullrad(Aws, Aws+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursws, qws, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTws, PREFRws)
-      !
       if (debug_switch) then
         write(*,*) "RAIN",RAIN(debug_lon, debug_lat,month)
         write(*,*) "MELTns",MELTns(debug_lon, debug_lat)
         write(*,*) "PREFRns",PREFRns(debug_lon, debug_lat)
       end if
 
-      !  snow type
+      !  determine surface type (Krebs-Kanzow et al 2020, Figure 3)
       old_wet  = (wet_snow .AND. (PREFRws < (MELTws + RAIN(:,:,month))))
       new_snow = (MELTns <= SNOW(:,:,month))
       dry_snow = ((.NOT.new_snow) .AND. (PREFRds >= (MELTds + RAIN(:,:,month))) .AND. (.NOT.old_wet))
       wet_snow = ((.NOT.new_snow) .AND. ((.NOT.dry_snow) .OR. (old_wet)))
-      !
       if (debug_switch) then
         write(*,*) "wet_snow",wet_snow(debug_lon, debug_lat)
         write(*,*) "dry_snow",dry_snow(debug_lon, debug_lat)
         write(*,*) "new_snow",new_snow(debug_lon, debug_lat)
       end if
 
+      ! recombine SMB of all submonthly periods, see Krebs-Kanzow et al, 2020 sect. 2.2
       ! MELT
       where (wet_snow)   MELT(:,:,month) = (MELTws + max(0.0_WP,-PREFRws))
       where (dry_snow)   MELT(:,:,month) = (MELTds + max(0.0_WP,-PREFRds))
       where (new_snow)   MELT(:,:,month) = (MELTns + max(0.0_WP,-PREFRns))
-      !
       if (debug_switch) then
         write(*,*) "MELTws",MELTws(debug_lon, debug_lat)
         write(*,*) "MELTds",MELTds(debug_lon, debug_lat)
@@ -348,12 +301,12 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
       end if
 
       ! REFR
-      ! The total refreezing rate is bounded above by the amount of liquid water (from rain fall RF or melting ME) which can be stored in the surface layer.
-      ! In line with a parameterization by Reeh (1991), we assume that the surface snow layer can hold 60 % of its mass
       snh_est = max(0.0_WP, tmpSNH + SNOW(:,:,month)*ml)
       where (wet_snow) REFR(:,:,month) = max(0.0_WP,PREFRws)
       where (dry_snow) REFR(:,:,month) = max(0.0_WP,PREFRds)
       where (new_snow) REFR(:,:,month) = max(0.0_WP,PREFRns)
+      ! The total refreezing rate is bounded above by the amount of liquid water (from rain fall RF or melting ME) which can be stored in the surface layer.
+      ! In line with a parameterization by Reeh (1991), we assume that the surface snow layer can hold 60 % of its mass
       where (mask(:,:,month))  REFR(:,:,month) = min(0.6_WP*snh_est/ml, REFR(:,:,month))
       if (debug_switch) then
         write(*,*) "snh_est",snh_est(debug_lon, debug_lat)
@@ -365,6 +318,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
       end if
 
       ! SNH
+      ! Eq. 14 Krebs-Kanzow et al. 2020
       SNH(:,:,month)   = max(0.0_WP,(tmpSNH + (SNOW(:,:,month) + REFR(:,:,month) - MELT(:,:,month))*ml))
       if (debug_switch) then
         write(*,*) "SNH...."
@@ -380,11 +334,15 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
       end if
 
       ! SMB
-     where (mask(:,:,month))  SMB(:,:,month) = SNOW(:,:,month) - MELT(:,:,month) + REFR(:,:,month)
+      ! Eq. 1 Krebs-Kanzow et al. 2020
+     where (mask(:,:,month)) SMB(:,:,month) = SNOW(:,:,month) - MELT(:,:,month) + REFR(:,:,month)
      if (debug_switch) then
        write(*,*) "SMB",SMB(debug_lon, debug_lat,month)
      end if
 
+     ! After September, we additionally subtract the snow height of previous year’s September,
+     ! which corresponds to the assumption that snow which is by then older than a year will transform into ice.
+     ! Section2.7 in Krebs-Kanzow et al. 2020
      if (month==9) then
        tmpSNH = max(0.0_WP,(SNH(:,:,month) - lastyear))
        SNH(:,:,month) = tmpSNH
@@ -392,7 +350,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
      else
        tmpSNH = SNH(:,:,month)
      end if
-end do
+    end do
 END SUBROUTINE dEBM_core
 
 
@@ -459,10 +417,6 @@ SUBROUTINE dEBM_fluxfac(mth, latm, obl, sol_flux_fact_0)
       end do
   end do
 
-  ! if F is the flux density normal to a surface,
-  ! insolation between [-ha,ha] is SW=  sol_flux_fact*F
-  ! ha is an hour angle during day time
-
   ! calcualtes hourangle of sun rise ha_0
   allocate (sinphisind(xlen, ylen))
   allocate (cosphicosd(xlen, ylen))
@@ -494,11 +448,10 @@ END SUBROUTINE dEBM_fluxfac
 
 SUBROUTINE dEBM_sunny_hours_c(mth, elev, latm, obl, HOURS, Q, FLUXFAC)
   ! ************************************************************************
-  ! dEBM_sunny_hours_c                                                     *
-  !   calculates                                                           *
+  ! dEBM_sunny_hours_c calculates                                          *
   !     the time that the sun is above a certain elevation angle           *
   !     solar density, and daily insolation                                *
-  ! Details is  described in                                               *
+  ! Details is  described in Section2.1                                    *
   !  Krebs-Kanzow, U., Gierz, P., and Lohmann, G.                          *
   !  Brief communication: An ice surface melt scheme including the         *
   !  diurnal cycle of solar radiation, The Cryosphere, 12, 3923–3930,      *
@@ -615,7 +568,7 @@ SUBROUTINE PDD4(temp, stddev, PDD)
   ! *                                                                      *
   ! * INPUT:                                                               *
   ! *   temp          : surface temperature                                *
-  ! *   stddev        : constant standard deveation                        *
+  ! *   stddev        : constant standard deviation                        *
   ! ************************************************************************
   ! * OUTPUT:                                                              *
   ! *   PDD           : positive degree days                               *
@@ -636,13 +589,15 @@ END SUBROUTINE PDD4
 
 SUBROUTINE dEBMmodel_fullrad(A, Aoc, swd_cs, swd_oc, temp, pdd, rain, hours, q, c1cs, c2cs, c1oc, c2oc, MC, cc, MELT, REFR)
   ! ************************************************************************
-  ! * dEBMmodel_fullrad calculates potential surface melt and refreeze rate*
+  ! * dEBMmodel_fullrad calculates potential surface melt and refreeze rate
+  ! * If the surface temperature is at the melting point, the melt rate is linearly related to the surface layer’s net energy uptake.
+  ! * Refreezing is analogously related to a net heat release
   ! ************************************************************************
   ! * INPUT:                                                               *
   ! *   A             : Albedo                                             *
-  ! *   Aoc           : Albedo of cloudy days                            *
-  ! *   swd_cs        : SW for fair conditions           *
-  ! *   swd_oc        : SW for cloudy conditions         *
+  ! *   Aoc           : Albedo of cloudy days                              *
+  ! *   swd_cs        : SW for fair conditions                             *
+  ! *   swd_oc        : SW for cloudy conditions                           *
   ! *   temp          : surface temperature                                *
   ! *   pdd           : an approx. of melt-period temperature              *
   ! *   rain          : liquid precipitation                               *
@@ -652,8 +607,8 @@ SUBROUTINE dEBMmodel_fullrad(A, Aoc, swd_cs, swd_oc, temp, pdd, rain, hours, q, 
   ! *   cc            : cloud cover                                        *
   ! **************************************************************************
   ! * OUTPUT:                                                              *
-  ! *   MELT          : surface melt rate                                             *
-  ! *   REFR          : surface refreeze rate                                           *
+  ! *   MELT          : surface melt rate                                  *
+  ! *   REFR          : surface refreeze rate                              *
   ! ************************************************************************
 
   real(kind=WP), intent(in) :: A, Aoc
@@ -677,28 +632,33 @@ SUBROUTINE dEBMmodel_fullrad(A, Aoc, swd_cs, swd_oc, temp, pdd, rain, hours, q, 
   refroc=0_WP
   meltFDoc=0_WP
 
-  ! calculate net surface energy flux for cloudy conditions,
-  ! and potential surface melt rate is linearly related to any positive net surface energy flux of a thawing surface
-  where (MC) meltFDoc = ((1.0_WP-Aoc)*swd_oc + (c2oc+c1oc*temp))         ! Function 5 for cloudy conditions
+  ! calculate net surface energy flux for cloudy conditions and potential surface melt rate is linearly related to any positive net surface energy flux of a thawing surface
+  ! see Eq. 5 for cloudy conditions  in  Krebs-Kanzow et al, 2020
+  where (MC) meltFDoc = ((1.0_WP-Aoc)*swd_oc + (c2oc+c1oc*temp))
   meltoc = max( meltFDoc, 0.0_WP)
 
   ! calculate net surface energy flux for fair conditions
-  where (MC) meltFDcs = ((1.0_WP-A)*swd_cs + (c2cs+c1cs*temp))           ! Function 5 for fair conditions
+  ! see Eq. 5 fair conditions in  Krebs-Kanzow et al, 2020
+  where (MC) meltFDcs = ((1.0_WP-A)*swd_cs + (c2cs+c1cs*temp))
   ! For fair days, we also consider the diurnal freeze–melt cycle
   ! Here, we calcualte the energy balance of the daily melt period of fair days
-  ! near surface temperature TMP during the melt period is represented by the always positive PDD =3.5
-  where (MC) meltcs   = (((1.0_WP-A)*swd_cs*24.0_WP*q) + (c2cs+c1cs*pdd)*hours)  ! Function 6
+  ! near surface temperature during the melt period is represented by the always positive PDD =3.5
+  ! see Eq. 6 in  Krebs-Kanzow et al, 2020
+  where (MC) meltcs   = (((1.0_WP-A)*swd_cs*24.0_WP*q) + (c2cs+c1cs*pdd)*hours)
   ! make sure meltcs is smaller than meltFDcs
   meltcs = max(0.0_WP, max(meltFDcs, meltcs))
 
   ! total melt rate
-  MELT = ((1.0_WP-cc)*meltcs + cc*meltoc)/Lf*24.0_WP*60.0_WP*60.0_WP    ! Function 2
+  ! see Eq. 2 in  Krebs-Kanzow et al, 2020
+  MELT = ((1.0_WP-cc)*meltcs + cc*meltoc)/Lf*24.0_WP*60.0_WP*60.0_WP    !
 
   ! Analogue to melting, we assume that refreeze is linearly related to negative net surface energy fluxes
   ! We also estimate the energy balance of the daily melt and refreezing periods, QMP and Qfair -  QMP
   refroc = max(-meltFDoc, 0.0_WP)
   refrcs = max(0.0_WP, meltcs - meltFDcs)
-  REFR = min( MELT + rain, (1.0_WP-cc)*refrcs + cc*refroc )/Lf*24.0_WP*60.0_WP*60.0_WP      !  Function 3
+  ! total refreeze rate is also limited by the amount of available liquid water
+  ! see Eq. 3 & 4 in  Krebs-Kanzow et al, 2020
+  REFR = min( MELT + rain, (1.0_WP-cc)*refrcs + cc*refroc )/Lf*24.0_WP*60.0_WP*60.0_WP      !
 
   ! deallocate
   deallocate( meltcs, meltoc, refrcs, refroc, meltFDcs, meltFDoc )

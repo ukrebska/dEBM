@@ -1,7 +1,7 @@
 The diurnal Energy Balance Model (dEBM)
 ======
 
-The diurnal Energy Balance Model (dEBM) is an surface mass balance model of intermediate complexity. It provides a novel interface between atmosphere and land ice for Earth System modelling. In contrast to empirical schemes, dEBM accounts for changes in the Earth's orbit and atmospheric composition. The scheme only requires monthly atmospheric forcing (precipitation, temperature, shortwave and longwave radiation and cloud cover) and is computationally inexpensive, which makes it particularly suitable to investigate the response of ice sheets to long term climate change.
+The diurnal Energy Balance Model (dEBM) is a surface mass balance model of glaciated surfaces. It provides a novel interface between atmosphere and land ice for Earth System modelling. In contrast to empirical schemes, dEBM accounts for changes in the Earth's orbit and atmospheric composition. The scheme only requires monthly atmospheric forcing (precipitation, temperature, shortwave and longwave radiation and cloud cover) and calculates surface mass balance (melt, refreeze, net surface mass balance) on a glacier surface. The dEBM is computationally inexpensive, which makes it particularly suitable to investigate the response of ice sheets to long-term climate change.
 
 If you have some questions, please contact Uta Krebs-Kanzow <ukrebska@awi.de> or Shan Xu <shan.xu@awi.de>
 
@@ -15,7 +15,8 @@ Getting Started with dEBM
 
 2. prepare the input:
 
-   EXAMPLE input files: test.nc (include air_temp precipitation cc swd TOAswd emiss tau q2m)
+   EXAMPLE input files: test.nc (include air_temp precipitation cc swd TOAswd emiss tau)
+   test.nc is already downscaled and interpolated from a T63 atmospheric resolution to a 20km equidistant grid.
 
    edit namelist of dEBM:
       vi namelist.dEBM:

@@ -10,7 +10,7 @@ MODULE MOD_PRE
 
   character(len=100), parameter :: nmlfile="namelist.debm"
   real(kind=8) :: stddev, obliquity, cloud_bias,&
-                     &Ans, Ads, Aws, tau_cs
+                     &Ans, Ads, Aws, tau_cs, residual
 
   character*300 :: filename_in
   character*20  :: precipitation_varname,&
@@ -23,6 +23,7 @@ MODULE MOD_PRE
                      &longitude_varname, latitude_varname, time_varname
   logical :: lresume, use_shortwave_radiation_TOA, debug_switch, use_mask
   integer :: debug_lon, debug_lat, debug_mon, debug_year
+  integer :: hydmth_str
 
 contains
 
@@ -31,7 +32,7 @@ contains
     ! * read_namelist reads in namelists                                     *
     ! *                                                                      *
     ! * debm                                                                 *
-    ! *       prescribed filename & variables names                          *
+    ! *       prescribed filename, variables names and tuned parameters
     ! * runctl                                                               *
     ! *       lresume: if or not restarted                                   *
     ! *       use_shortwave_radiation_TOA:                                   *
@@ -48,8 +49,8 @@ contains
                     &emissivity_varname, transmissivity_varname,&
                     &mapping_varname,&
                     &longitude_varname, latitude_varname, time_varname,&
-                    &stddev, obliquity, cloud_bias, &
-                    &Ans, Ads, Aws, tau_cs
+                    &hydmth_str, stddev, obliquity, cloud_bias, &
+                    &Ans, Ads, Aws, tau_cs, residual
 
   namelist /runctl/ lresume, use_shortwave_radiation_TOA, use_mask, &
                     &debug_switch, &
@@ -70,6 +71,7 @@ contains
 
     ! debm
     write(*,*) "stddev",stddev
+    write(*,*) "hydmth_str",hydmth_str
     write(*,*) "obliquity",obliquity
     write(*,*) "cloud_bias",cloud_bias
     write(*,*) "filename_in:",trim(filename_in)
