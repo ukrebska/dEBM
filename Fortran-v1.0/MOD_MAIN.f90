@@ -137,13 +137,13 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     ! S0 should be a variable funct. f(eccentricity, longitude of perihelion, declination)
     ! for paleo applications we can calculate it from SWD_TOA
     ! ideally we should improve the calculations of the declination and S0
-    ! S0(1:12)=1330.0_WP
+     S0(1:12)=1365.0_WP
     if (use_shortwave_radiation_TOA) then
       ! if swd_TOA is given, we estimate summer S0 from swd_TOA at 65N
       ! Here, we use 65N, because insolation at 65N can be compared to literature just to doublecheck
       ! TODO: at some point we should calculate this from orbital parameters
-      min_lat_idx=minloc(abs(latm(:,:,:)-65.0_WP))     ! locate 65N
-      do month=5, 9
+      min_lat_idx=minloc(abs(latm(:,:,:)-(-65.0_WP)))     ! locate 65N
+      do month=10, 4, -1
         fluxfactor = swd_sfc(min_lat_idx(1),min_lat_idx(2),month)        ! incoming surface SW at 65N
         swd_lat_min = swd_TOAm(min_lat_idx(1),min_lat_idx(2),month)      ! TOA SW at 65N
         if (swd_lat_min>100.0_WP) S0(month) = swd_lat_min/fluxfactor     !

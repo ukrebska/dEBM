@@ -121,7 +121,7 @@ contains
     CALL get_emissivity
 
     ! get get_transmissivity
-    CALL get_transmissivity
+    !CALL get_transmissivity
 
     ! mask
     if (use_mask) then
@@ -197,7 +197,7 @@ contains
       implicit none
       include 'netcdf.inc'
 
-      character(len = 20) :: shortwave_radiation_downward_units
+      character(len = 50) :: shortwave_radiation_downward_units
       real(kind=WP), dimension(:,:,:), allocatable :: shortwave_radiation_downward
 
       ! read
@@ -231,7 +231,7 @@ contains
       implicit none
       include 'netcdf.inc'
 
-      character(len = 20) :: precipitation_units
+      character(len = 50) :: precipitation_units
       real(kind=WP), dimension(:,:,:), allocatable :: shortwave_radiation_TOA
 
       ! read
