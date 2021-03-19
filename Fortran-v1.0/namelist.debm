@@ -12,14 +12,14 @@ debug_year=1
 /
 
 &debm
-filename_in='racmo_cesm2_hist_1986-2015_ymonmean_initmip32km.nc' ! input filename
+filename_in='test.nc' ! input filename
 
 precipitation_varname='precipitation'
 temperature_varname='air_temp'
-shortwave_radiation_downward_varname='incoming_shortwave_radiation'
-shortwave_radiation_TOA_varname='incoming_shortwave_radiation_TOA'
-cloud_cover_varname='cloud_cover'
-emissivity_varname='emissivity'
+shortwave_radiation_downward_varname='swd'
+shortwave_radiation_TOA_varname='TOAswd'
+cloud_cover_varname='cc'
+emissivity_varname='emiss'
 transmissivity_varname='tau'
 mapping_varname='thk'
 longitude_varname='lon'
@@ -38,3 +38,4 @@ Aws    = .55      ! Albedo for wet snow
 tau_cs = .75      ! expected clear sky transmissivity
 residual    = 0        ! residual heat flux (e.g. due to flux into the ice sheet
 /
+
