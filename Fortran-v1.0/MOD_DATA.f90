@@ -121,7 +121,7 @@ contains
     CALL get_emissivity
 
     ! get get_transmissivity
-    CALL get_transmissivity
+    ! CALL get_transmissivity
 
     ! mask
     if (use_mask) then
