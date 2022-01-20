@@ -23,7 +23,8 @@ MODULE MOD_MAIN
 
 contains
 
-SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear, latm, mask, obl, mth_str, SNH, SMB, MELT, REFR, A, SNOW, RAIN, S07)
+SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear, latm, mask, obl, mth_str, SNH, SMB, MELT, &
+  &REFR, A, SNOW, RAIN, S07)
     ! ************************************************************************
     ! * dEBM_core calculates the surface mass blance                         *
     ! ************************************************************************
@@ -116,7 +117,8 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     allocate (swd(xlen, ylen), swd_TOA(xlen, ylen), swd_cs(xlen, ylen), swd_oc(xlen, ylen))
     allocate (tau(xlen, ylen), tau_oc(xlen, ylen))
     allocate (emiss(xlen, ylen), emiss_gas(xlen, ylen), epsa_cst(xlen, ylen), epsa_oct(xlen, ylen))
-    allocate (MELTns(xlen, ylen), PREFRns(xlen, ylen), MELTds(xlen, ylen), PREFRds(xlen, ylen), MELTws(xlen, ylen), PREFRws(xlen, ylen))
+    allocate (MELTns(xlen, ylen), PREFRns(xlen, ylen), MELTds(xlen, ylen), PREFRds(xlen, ylen), MELTws(xlen, ylen), &
+    &PREFRws(xlen, ylen))
     allocate (old_wet(xlen, ylen), new_snow(xlen, ylen), dry_snow(xlen, ylen), wet_snow(xlen, ylen))
     allocate (c1cs(xlen, ylen), c2cs(xlen, ylen), c1oc(xlen, ylen), c2oc(xlen, ylen))
     allocate (snh_est(xlen, ylen))
@@ -268,9 +270,12 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
 
       ! calculate MELT & REFR based on Q for all SurfaceTypes
       ! see Krebs-Kanzow et al, 2020 sect. 2.6
-      CALL dEBMmodel_fullrad(Ans, Ans+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursns, qns, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTns, PREFRns)
-      CALL dEBMmodel_fullrad(Ads, Ads+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursds, qds, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTds, PREFRds)
-      CALL dEBMmodel_fullrad(Aws, Aws+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursws, qws, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTws, PREFRws)
+      CALL dEBMmodel_fullrad(Ans, Ans+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursns, &
+      &qns, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTns, PREFRns)
+      CALL dEBMmodel_fullrad(Ads, Ads+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursds, &
+      &qds, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTds, PREFRds)
+      CALL dEBMmodel_fullrad(Aws, Aws+0.05_WP, swd_cs, swd_oc, tempm(:,:,month), PDD, RAIN(:,:,month), hoursws, &
+      &qws, c1cs, c2cs, c1oc, c2oc, tmpmask, cc, MELTws, PREFRws)
       if (debug_switch) then
         write(*,*) "RAIN",RAIN(debug_lon, debug_lat,month)
         write(*,*) "MELTns",MELTns(debug_lon, debug_lat)
