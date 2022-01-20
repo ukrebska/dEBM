@@ -66,7 +66,7 @@ PROGRAM dEBMmain
   allocate (snh_Dec( xlen, ylen))
   allocate (snh_Sep( xlen, ylen))
   n=1
-  if ((n==1) .AND. (lresume==.true.))then
+  if ((n==1) .AND. (lresume .eqv. .true.))then
     ! For a warm start, read the snow height from restart file
     write(*,*) " "
     write(*,*) "We are doing a restart."
