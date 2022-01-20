@@ -166,7 +166,7 @@ contains
       status=nf_inq_dimlen(ncid, timeid, tlen)
       allocate(t1(tlen))
       status=nf_inq_varid(ncid, 'time', varid)
-      status=nf_get_vara_double(ncid,timeid,1,tlen,t1)
+      status=nf_get_vara_double(ncid,varid,1,tlen,t1)
 
       ! lat
       allocate (lat0(xlen,ylen))
