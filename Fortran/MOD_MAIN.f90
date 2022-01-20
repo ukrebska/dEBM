@@ -99,7 +99,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     real(kind=WP), allocatable, dimension(:,:,:) :: swd_sfc
     real(kind=WP), dimension(12) :: S0
     integer, dimension(3) :: min_lat_idx
-    real :: swd_lat_min, fluxfactor
+    real(kind=WP) :: swd_lat_min, fluxfactor
 
     !
     allocate (hoursns(xlen, ylen), qns(xlen, ylen), fluxfacns(xlen, ylen))
@@ -545,7 +545,7 @@ SUBROUTINE dEBM_sunny_hours_c(mth, elev, latm, obl, HOURS, Q, FLUXFAC)
 
   ! ratio between insolation of melt period and whole day
   ! relates to solar flux density
-  where (sol_flux_fact_0==0.0_WP)
+  where (abs(sol_flux_fact_0) <= epsilon(sol_flux_fact_0))
     Q = 0.0_WP
   elsewhere
     Q = sol_flux_fact_e/sol_flux_fact_0
