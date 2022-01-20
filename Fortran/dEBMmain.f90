@@ -88,7 +88,8 @@ PROGRAM dEBMmain
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
                     &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
-                    &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), albedo(:,:,:,n), &
+                    &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), &
+                    &albedo(:,:,:,n), &
                     &snow_amount(:,:,:,n), rain_rate(:,:,:,n), summer_solar_density(n))
     snh_Dec = snow_height(:,:,12,1)
     snh_Sep = snow_height(:,:,9,1)
@@ -98,7 +99,8 @@ PROGRAM dEBMmain
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
                     &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
-                    &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), albedo(:,:,:,n), &
+                    &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), &
+                    &albedo(:,:,:,n), &
                     &snow_amount(:,:,:,n), rain_rate(:,:,:,n), summer_solar_density(n))
     snh_Dec = snow_height(:,:,12,1)
     snh_Sep = snow_height(:,:,9,1)
@@ -116,7 +118,8 @@ PROGRAM dEBMmain
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
                     &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
-                    &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), albedo(:,:,:,n), &
+                    &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), &
+                    &albedo(:,:,:,n), &
                     &snow_amount(:,:,:,n), rain_rate(:,:,:,n), summer_solar_density(n))
     snh_Dec = snow_height(:,:,12,n)
     snh_Sep = snow_height(:,:,9,n)
