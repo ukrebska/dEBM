@@ -249,7 +249,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
       c1cs = (epsi*epsa_cst*4.*bolz*(T0**3)+beta)
       c2oc = (-epsi+epsa_oct*epsi)*bolz*(T0**4)-residual
       c1oc = (epsi*epsa_oct*4.*bolz*(T0**3)+beta)
-      winkelns = asin(-c2cs/(1.0_WP-Ans)/(S0(month)*tau_cs))*180.0_WP/pi
+      winkelns = asin(min(0.0_WP,max(1.0_WP,-c2cs/(1.0_WP-Ans)/(S0(month)*tau_cs))))*180.0_WP/pi
       winkelds = asin(-c2cs/(1.0_WP-Ads)/(S0(month)*tau_cs))*180.0_WP/pi
       winkelws = asin(-c2cs/(1.0_WP-Aws)/(S0(month)*tau_cs))*180.0_WP/pi
 
