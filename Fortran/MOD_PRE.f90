@@ -83,7 +83,7 @@ contains
     write(*,*) "transmissivity_varname:",transmissivity_varname
     write(*,*) "mapping_varname:",mapping_varname
     write(*,*) "longitude_varname:",longitude_varname
-    write(*,*) "latitude_varname:",transmissivity_varname
+    write(*,*) "latitude_varname:",latitude_varname
   end if
 
  END SUBROUTINE read_namelist
