@@ -493,7 +493,7 @@ contains
 
       ! reshape
       allocate (mask1(xlen, ylen, tlen))
-      mask1 =  (mask(:,:,:) > 5)
+      mask1 =  (mask(:,:,:) > 150)
 
       ! deallocate
       deallocate(mask)

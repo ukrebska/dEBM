@@ -127,8 +127,9 @@ PROGRAM dEBMmain
     write(*,*) "SNH",snow_height(debug_lon, debug_lat, debug_mon, debug_year)
     write(*,*) "surface_mass_balance",surface_mass_balance(debug_lon, debug_lat, debug_mon, debug_year)
     write(*,*) "melt_rate",melt_rate(debug_lon, debug_lat, debug_mon, debug_year)
+    write(*,*) "snow_amount",snow_amount(debug_lon, debug_lat, debug_mon, debug_year)
+    write(*,*) "rain_rate",rain_rate(debug_lon, debug_lat, debug_mon, debug_year)
     write(*,*) "albedo",albedo(debug_lon, debug_lat, debug_mon, debug_year)
-    write(*,*) "summer_solar_density",summer_solar_density(7)
   end if
 
   ! Write restart
