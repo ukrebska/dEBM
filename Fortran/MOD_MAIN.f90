@@ -184,6 +184,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
       swd     = swdm(:,:,month)
       emiss   = emissm(:,:,month)
       swd_TOA = swd_TOAm(:,:,month)
+      temp    = tempm(:,:,month)
       tmpmask = ((tempm(:,:,month) > -6.5) .AND. (mask(:,:,month)))
 
       CALL PDD4(temp, stddev, PDD)
@@ -639,31 +640,31 @@ SUBROUTINE dEBMmodel_fullrad(A, Aoc, swd_cs, swd_oc, temp, pdd, rain, hours, q, 
 
   ! calculate net surface energy flux for cloudy conditions and potential surface melt rate is linearly related to any positive net surface energy flux of a thawing surface
   ! see Eq. 5 for cloudy conditions  in  Krebs-Kanzow et al, 2020
-  where (MC) meltFDoc = ((1.0_WP-Aoc)*swd_oc + (c2oc+c1oc*temp))
+  where (MC) meltFDoc = ((1.0_WP-Aoc)*swd_oc + (c2oc+c1oc*temp))/Lf*24.0_WP*60.0_WP*60.0_WP
   meltoc = max( meltFDoc, 0.0_WP)
 
   ! calculate net surface energy flux for fair conditions
   ! see Eq. 5 fair conditions in  Krebs-Kanzow et al, 2020
-  where (MC) meltFDcs = ((1.0_WP-A)*swd_cs + (c2cs+c1cs*temp))
+  where (MC) meltFDcs = ((1.0_WP-A)*swd_cs + (c2cs+c1cs*temp))/Lf*24.0_WP*60.0_WP*60.0_WP
   ! For fair days, we also consider the diurnal freeze–melt cycle
   ! Here, we calcualte the energy balance of the daily melt period of fair days
-  ! near surface temperature during the melt period is represented by the always positive PDD =3.5
+  ! near surface temperature during the melt period is represented by the always positive PDD�=3.5
   ! see Eq. 6 in  Krebs-Kanzow et al, 2020
-  where (MC) meltcs   = (((1.0_WP-A)*swd_cs*24.0_WP*q) + (c2cs+c1cs*pdd)*hours)
+  where (MC) meltcs   = (((1.0_WP-A)*swd_cs*24.0_WP*q) + (c2cs+c1cs*pdd)*hours)/Lf*60.0_WP*60.0_WP
   ! make sure meltcs is smaller than meltFDcs
   meltcs = max(0.0_WP, max(meltFDcs, meltcs))
 
   ! total melt rate
   ! see Eq. 2 in  Krebs-Kanzow et al, 2020
-  MELT = ((1.0_WP-cc)*meltcs + cc*meltoc)/Lf*24.0_WP*60.0_WP*60.0_WP    !
+  MELT = ((1.0_WP-cc)*meltcs + cc*meltoc)
 
   ! Analogue to melting, we assume that refreeze is linearly related to negative net surface energy fluxes
-  ! We also estimate the energy balance of the daily melt and refreezing periods, QMP and Qfair -  QMP
+  ! We also estimate the energy balance of the daily melt and refreezing periods, QMP and Qfair - �QMP
   refroc = max(-meltFDoc, 0.0_WP)
   refrcs = max(0.0_WP, meltcs - meltFDcs)
   ! total refreeze rate is also limited by the amount of available liquid water
   ! see Eq. 3 & 4 in  Krebs-Kanzow et al, 2020
-  REFR = min( MELT + rain, (1.0_WP-cc)*refrcs + cc*refroc )/Lf*24.0_WP*60.0_WP*60.0_WP      !
+  REFR = min( MELT + rain, (1.0_WP-cc)*refrcs + cc*refroc ) 
 
   ! deallocate
   deallocate( meltcs, meltoc, refrcs, refroc, meltFDcs, meltFDoc )
