@@ -357,6 +357,20 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
        tmpSNH = SNH(:,:,month)
      end if
     end do
+
+    ! deallocate
+    deallocate (hoursns, qns, fluxfacns)
+    deallocate (hoursds, qds, fluxfacds)
+    deallocate (hoursws, qws, fluxfacws)
+    deallocate (temp,PDD,tmpmask,solid,cc)
+    deallocate (swd, swd_TOA, swd_cs, swd_oc)
+    deallocate (tau, tau_oc)
+    deallocate (emiss, emiss_gas, epsa_cst, epsa_oct)
+    deallocate (MELTns, PREFRns, MELTds, PREFRds, MELTws, PREFRws)
+    deallocate (old_wet, new_snow, dry_snow, wet_snow)
+    deallocate (c1cs, c2cs, c1oc, c2oc)
+    deallocate (snh_est,swd_sfc)
+
 END SUBROUTINE dEBM_core
 
 

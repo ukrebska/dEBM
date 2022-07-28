@@ -148,5 +148,8 @@ PROGRAM dEBMmain
   CALL write_output(lon0, lat0, snow_height, surface_mass_balance, melt_rate,&
                       &refreeze_rate, albedo,&
                       &snow_amount, rain_rate)
+  ! deallocate
+  deallocate(snow_height,surface_mass_balance,melt_rate,accmulation_rate,refreeze_rate,albedo,snow_amount,rain_rate,summer_solar_density)
+  deallocate(snh_Dec,snh_Sep)
 
 END PROGRAM dEBMmain
