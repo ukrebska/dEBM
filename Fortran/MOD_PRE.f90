@@ -19,6 +19,7 @@ MODULE MOD_PRE
                      &shortwave_radiation_TOA_varname,&
                      &cloud_cover_varname, &
                      &emissivity_varname, transmissivity_varname,&
+                     &windvelocity_varname,& ! LA 2023-08-22
                      &mapping_varname,&
                      &longitude_varname, latitude_varname, time_varname
   logical :: lresume, use_shortwave_radiation_TOA, debug_switch, use_mask
@@ -47,6 +48,7 @@ contains
                     &shortwave_radiation_TOA_varname,&
                     &cloud_cover_varname, &
                     &emissivity_varname, transmissivity_varname,&
+                    &windvelocity_varname,& ! LA 2023-08-22
                     &mapping_varname,&
                     &longitude_varname, latitude_varname, time_varname,&
                     &hydmth_str, stddev, obliquity, cloud_bias, &
@@ -81,6 +83,7 @@ contains
     write(*,*) "shortwave_radiation_TOA_varname:",shortwave_radiation_TOA_varname
     write(*,*) "emissivity_varname:",emissivity_varname
     write(*,*) "transmissivity_varname:",transmissivity_varname
+    write(*,*) "windvelocity_varname:",windvelocity_varname ! LA 2023-08-22
     write(*,*) "mapping_varname:",mapping_varname
     write(*,*) "longitude_varname:",longitude_varname
     write(*,*) "latitude_varname:",latitude_varname
