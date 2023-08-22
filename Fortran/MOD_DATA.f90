@@ -13,6 +13,7 @@ MODULE MOD_DATA
 ! *         | get_cloud_cover                                            *
 ! *         | get_emissivity                                             *
 ! *         | get_transmissivity                                         *
+! *         | get_windvelocity ! LA 2023-08-22                           *
 ! *         | get_mask                                                   *
 ! *    | handle_err                                                      *
 ! *         detect error in reading initial fields                       *
@@ -24,7 +25,8 @@ MODULE MOD_DATA
   real(kind=WP), dimension(:,:,:,:), allocatable ::  shortwave_radiation_downward1, shortwave_radiation_TOA1,&
                                             &precipitation1,&
                                             &surface_temperature1,&
-                                            &cloud_cover1, emissivity1, transmissivity1
+                                            &cloud_cover1, emissivity1, transmissivity1,&
+                                            &windvelocity1 ! LA 2023-08-22: for beta
   real(kind=WP), dimension(:,:,:,:), allocatable :: lat
   real(kind=WP), dimension(:), allocatable	  :: x1, y1, t1
   real(kind=WP), dimension(:,:), allocatable :: lon0, lat0
@@ -55,6 +57,7 @@ contains
     ! *   cloud_cover                         %                              *
     ! *   emissivity                          %                              *
     ! *   transmissivity                      %                              *
+    ! *   windvelocity ! LA 2023-08-22        m/s                            *
     ! *   mask (optional)                                                    *
     ! ************************************************************************
     implicit none
@@ -122,6 +125,9 @@ contains
 
     ! get get_transmissivity
     ! CALL get_transmissivity
+    
+    ! LA 2023-08-22: get get_windvelocity 
+    CALL get_windvelocity
 
     ! mask
     if (use_mask) then
@@ -500,7 +506,42 @@ contains
 
     END SUBROUTINE get_mask
 
+    !--------------------------------------------------
+    ! LA 2023-08-22: add wind velocity for beta
+    SUBROUTINE get_windvelocity
+      ! ************************************************************************
+      ! *   wind velocity                                                      *
+      ! ************************************************************************
 
+      implicit none
+      include 'netcdf.inc'
+
+      real(kind=WP), dimension(:,:,:), allocatable :: windvelocity
+
+      ! read
+      status = nf_inq_varid(ncid, windvelocity_varname, varid)
+      if (status .ne. nf_noerr) then
+         write(*,*) 'error by getting varid for ',trim(windvelocity_varname)
+         call handle_err(status)
+      end if
+      allocate (windvelocity(xlen, ylen, tlen))
+      icount= (/xlen,ylen,1/)
+      do k = 1, tlen
+        istart = (/1,1,k/)
+        status=nf_get_vara_double(ncid,varid,istart,icount,windvelocity(:,:,k))
+      end do
+
+      ! reshape
+      allocate (windvelocity1(xlen,ylen,mlen,nlen))
+      windvelocity1 = reshape( windvelocity, (/xlen,ylen,mlen,nlen/) )
+
+      ! deallocate
+      deallocate(windvelocity)
+
+    END SUBROUTINE get_windvelocity
+    !--------------------------------------------------
+    
+    
     SUBROUTINE handle_err(errcode)
       ! ************************************************************************
       ! handle error in read or write netcdf files

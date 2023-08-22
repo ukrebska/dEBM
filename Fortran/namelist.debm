@@ -21,6 +21,7 @@ shortwave_radiation_TOA_varname='TOAswd'
 cloud_cover_varname='cc'
 emissivity_varname='emiss'
 transmissivity_varname='tau'
+windvelocity_varname='uv' ! LA 2023-08-22
 mapping_varname='thk'
 longitude_varname='lon'
 latitude_varname='lat'
