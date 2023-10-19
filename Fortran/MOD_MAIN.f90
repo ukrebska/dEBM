@@ -74,7 +74,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     real(kind=WP), parameter :: epsi = .98        ! emissivity of ice
     real(kind=WP), parameter :: epsa_cs = .78     ! emissivity depends on cloud cover and greenhouse gases (incl. water vapor)
     real(kind=WP) :: epsa_oc                      ! eps_oc = epsa_cs + cloud_bias  (Konig-Langlo, 1994)
-    real(kind=WP), parameter :: beta   = 7.5      ! turbulent heat transfer coeff
+    real(kind=WP), parameter :: beta   = 10       ! turbulent heat transfer coeff
     real(kind=WP), parameter :: bolz   = 5.67e-8  ! Stefan-Boltzmann constant
     real(kind=WP), parameter :: T0     = 273.15   ! melt point in K
     real(kind=WP), parameter :: Tmin   = -6.5     ! background melt condition
