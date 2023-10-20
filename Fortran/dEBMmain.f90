@@ -86,7 +86,7 @@ PROGRAM dEBMmain
     mth_str = hydmth_str
     CALL dEBM_core(surface_temperature1(:,:,:,n), &
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
-                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
+                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), windvelocity1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
                     &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), &
                     &albedo(:,:,:,n), &
@@ -97,7 +97,7 @@ PROGRAM dEBMmain
     mth_str = 1     ! start from Jan
     CALL dEBM_core(surface_temperature1(:,:,:,n), &
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
-                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
+                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), windvelocity1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
                     &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), &
                     &albedo(:,:,:,n), &
@@ -116,7 +116,7 @@ PROGRAM dEBMmain
     mth_str = 1
     CALL dEBM_core(surface_temperature1(:,:,:,n), &
                     &shortwave_radiation_downward1(:,:,:,n), shortwave_radiation_TOA1(:,:,:,n), &
-                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
+                    &emissivity1(:,:,:,n), cloud_cover1(:,:,:,n), windvelocity1(:,:,:,n), precipitation1(:,:,:,n), snh_Dec, snh_Sep, &
                     &lat(:,:,:,n), mask1, obliquity, mth_str, &
                     &snow_height(:,:,:,n), surface_mass_balance(:,:,:,n), melt_rate(:,:,:,n), refreeze_rate(:,:,:,n), &
                     &albedo(:,:,:,n), &

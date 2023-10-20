@@ -23,7 +23,7 @@ MODULE MOD_MAIN
 
 contains
 
-SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear, latm, mask, obl, mth_str, SNH, SMB, MELT, &
+SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, uvm, ppm, tmpSNH, lastyear, latm, mask, obl, mth_str, SNH, SMB, MELT, &
   &REFR, A, SNOW, RAIN, S07)
     ! ************************************************************************
     ! * dEBM_core calculates the surface mass blance                         *
@@ -35,6 +35,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     ! emiss    : atm. emissivity calculated on coarse grid,
     !            then interpolated (12 monthly means)
     ! clcov    : cloud cover [0 1]  (12 monthly means)
+    ! uv       : wind velocity in m/s  (12 monthly means) ! LA 2023-08-22
     ! ppm      : precipitation in mm/day (12  monthly means)
     ! tmpSNH  : last month's snow height (mm)
     ! lastyear: last September's snow height (mm)
@@ -60,7 +61,8 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     real(kind=WP), intent(in) :: obl
     logical, intent(in), dimension(:,:,:) :: mask
     real(kind=WP), intent(in), dimension(:,:,:)    :: tempm, swdm, &
-                                                        &emissm, clcov, ppm, latm
+                                                        &emissm, clcov, ppm, latm, &
+                                                        &uvm ! LA 2023-08-22
 
     real(kind=WP), intent(inout), dimension(:,:,:) :: swd_TOAm   ! if the swd_TOAm is not input
                                                                  ! swd_TOAm will be set to constant, then recalculate
@@ -74,7 +76,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     real(kind=WP), parameter :: epsi = .98        ! emissivity of ice
     real(kind=WP), parameter :: epsa_cs = .78     ! emissivity depends on cloud cover and greenhouse gases (incl. water vapor)
     real(kind=WP) :: epsa_oc                      ! eps_oc = epsa_cs + cloud_bias  (Konig-Langlo, 1994)
-    real(kind=WP), parameter :: beta   = 10.      ! turbulent heat transfer coeff
+    real(kind=WP), parameter :: beta   = 10       ! turbulent heat transfer coeff
     real(kind=WP), parameter :: bolz   = 5.67e-8  ! Stefan-Boltzmann constant
     real(kind=WP), parameter :: T0     = 273.15   ! melt point in K
     real(kind=WP), parameter :: Tmin   = -6.5     ! background melt condition
@@ -89,6 +91,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
                                             &swd, swd_TOA, swd_cs, swd_oc
     real(kind=WP), allocatable, dimension(:,:) :: tau, tau_oc
     real(kind=WP), allocatable, dimension(:,:) :: emiss, emiss_gas, epsa_cst, epsa_oct
+    real(kind=WP), allocatable, dimension(:,:) :: uv ! LA 2023-08-22
     logical, allocatable, dimension(:,:) :: tmpmask
     real(kind=WP), allocatable, dimension(:,:) :: winkelns, winkelds, winkelws
     real(kind=WP), allocatable, dimension(:,:) :: c1cs, c2cs, c1oc, c2oc
@@ -100,8 +103,11 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     real(kind=WP), dimension(12) :: S0
     integer, dimension(3) :: min_lat_idx
     real(kind=WP) :: swd_lat_min, fluxfactor
+    real(kind=WP), allocatable, dimension(:,:) :: beta2D 
 
     !
+    allocate (beta2D(xlen, ylen))
+    beta2D=0.0_WP
     allocate (hoursns(xlen, ylen), qns(xlen, ylen), fluxfacns(xlen, ylen))
     hoursns=0.0_WP; qns=0.0_WP; fluxfacns=0.0_WP
     allocate (hoursds(xlen, ylen), qds(xlen, ylen), fluxfacds(xlen, ylen))
@@ -117,6 +123,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     allocate (swd(xlen, ylen), swd_TOA(xlen, ylen), swd_cs(xlen, ylen), swd_oc(xlen, ylen))
     allocate (tau(xlen, ylen), tau_oc(xlen, ylen))
     allocate (emiss(xlen, ylen), emiss_gas(xlen, ylen), epsa_cst(xlen, ylen), epsa_oct(xlen, ylen))
+    allocate (uv(xlen, ylen)) ! LA 2023-08-22
     allocate (MELTns(xlen, ylen), PREFRns(xlen, ylen), MELTds(xlen, ylen), PREFRds(xlen, ylen), MELTws(xlen, ylen), &
     &PREFRws(xlen, ylen))
     allocate (old_wet(xlen, ylen), new_snow(xlen, ylen), dry_snow(xlen, ylen), wet_snow(xlen, ylen))
@@ -186,6 +193,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
       swd_TOA = swd_TOAm(:,:,month)
       temp    = tempm(:,:,month)
       tmpmask = ((tempm(:,:,month) > -6.5) .AND. (mask(:,:,month)))
+      uv      = uvm(:,:,month)
 
       CALL PDD4(temp, stddev, PDD)
       where (.NOT. tmpmask) PDD = 0.
@@ -199,6 +207,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
         write(*,*) "mask",mask(debug_lon, debug_lat,month)
         write(*,*) "tmpmask",tmpmask(debug_lon, debug_lat)
         write(*,*) "PDD",PDD(debug_lon, debug_lat)
+        write(*,*) "uv",uv(debug_lon, debug_lat)
       end if
 
       ! to determine the fraction of snow (solid) and rain (liquid water) in precipitation
@@ -244,15 +253,27 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
         write(*,*) "epsa_oct",epsa_oct(debug_lon, debug_lat)
       end if
 
+      ! LA 2023-08-22: calculate beta
+      if (beta_nml > 0.0_WP) then
+        beta2D = beta_nml
+      elseif (lwind_given) then
+        beta2D = min(4.*uv, 12.)
+      else
+        beta2D = beta
+      end if
+      if (debug_switch) then
+        write(*,*) "beta2D",beta2D(debug_lon, debug_lat)
+        write(*,*) "beta_nml",beta_nml
+      end if
       ! c1, c2 are determined locally and monthly
       ! see Krebs-Kanzow et al, 2018
       c2cs = (-epsi+epsa_cst*epsi)*bolz*(T0**4)-residual
-      c1cs = (epsi*epsa_cst*4.*bolz*(T0**3)+beta)
+      c1cs = (epsi*epsa_cst*4.*bolz*(T0**3)+beta2D)
       c2oc = (-epsi+epsa_oct*epsi)*bolz*(T0**4)-residual
-      c1oc = (epsi*epsa_oct*4.*bolz*(T0**3)+beta)
+      c1oc = (epsi*epsa_oct*4.*bolz*(T0**3)+beta2D)
       winkelns = asin(max(-1.0_WP,min(1.0_WP,-c2cs/(1.0_WP-Ans)/(S0(month)*tau_cs))))*180.0_WP/pi
-      winkelds = asin(-c2cs/(1.0_WP-Ads)/(S0(month)*tau_cs))*180.0_WP/pi
-      winkelws = asin(-c2cs/(1.0_WP-Aws)/(S0(month)*tau_cs))*180.0_WP/pi
+      winkelds = asin(max(-1.0_WP,min(1.0_WP,-c2cs/(1.0_WP-Ads)/(S0(month)*tau_cs))))*180.0_WP/pi
+      winkelws = asin(max(-1.0_WP,min(1.0_WP,-c2cs/(1.0_WP-Aws)/(S0(month)*tau_cs))))*180.0_WP/pi
 
       ! calculate melt period and effective insolation
       CALL dEBM_sunny_hours_c(month, winkelns, latm(:,:,month), obliquity, hoursns, qns, fluxfacns)
@@ -286,7 +307,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
       !  determine surface type (Krebs-Kanzow et al 2020, Figure 3)
       old_wet  = (wet_snow .AND. (PREFRws < (MELTws + RAIN(:,:,month))))
       new_snow = (MELTns <= SNOW(:,:,month))
-      dry_snow = ((.NOT.new_snow) .AND. (PREFRds >= (MELTds + RAIN(:,:,month))) .AND. (.NOT.old_wet))
+      dry_snow = ((.NOT.new_snow) .AND. (((temp <0) .AND. (snh_est>20)) .OR. PREFRds >= (MELTds + RAIN(:,:,month))) .AND. (.NOT.old_wet))
       wet_snow = ((.NOT.new_snow) .AND. ((.NOT.dry_snow) .OR. (old_wet)))
       if (debug_switch) then
         write(*,*) "wet_snow",wet_snow(debug_lon, debug_lat)
@@ -366,6 +387,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, ppm, tmpSNH, lastyear
     deallocate (swd, swd_TOA, swd_cs, swd_oc)
     deallocate (tau, tau_oc)
     deallocate (emiss, emiss_gas, epsa_cst, epsa_oct)
+    deallocate (uv) ! LA 2023-08-22
     deallocate (MELTns, PREFRns, MELTds, PREFRds, MELTws, PREFRws)
     deallocate (old_wet, new_snow, dry_snow, wet_snow)
     deallocate (c1cs, c2cs, c1oc, c2oc)

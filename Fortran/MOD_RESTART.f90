@@ -186,7 +186,7 @@ SUBROUTINE write_restart(SNH_Sep, SNH_Dec)
       if (status .ne. nf_noerr) call handle_err(status)
 
       ! deallocate
-      deallocate(x0,y0,SNH_Sepr,SNH_Decr)
+      !deallocate(x0,y0,SNH_Sepr,SNH_Decr)
 
       write(*,*) "Finish reading restart files"
 
