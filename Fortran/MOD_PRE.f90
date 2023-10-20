@@ -19,11 +19,13 @@ MODULE MOD_PRE
                      &shortwave_radiation_TOA_varname,&
                      &cloud_cover_varname, &
                      &emissivity_varname, transmissivity_varname,&
+                     &windvelocity_varname,& ! LA 2023-08-22
                      &mapping_varname,&
                      &longitude_varname, latitude_varname, time_varname
   logical :: lresume, use_shortwave_radiation_TOA, debug_switch, use_mask
   integer :: debug_lon, debug_lat, debug_mon, debug_year
   integer :: hydmth_str
+  real(kind=WP) :: beta_nml = 0.0_WP
 
 contains
 
@@ -47,10 +49,12 @@ contains
                     &shortwave_radiation_TOA_varname,&
                     &cloud_cover_varname, &
                     &emissivity_varname, transmissivity_varname,&
+                    &windvelocity_varname,& ! LA 2023-08-22
                     &mapping_varname,&
                     &longitude_varname, latitude_varname, time_varname,&
                     &hydmth_str, stddev, obliquity, cloud_bias, &
-                    &Ans, Ads, Aws, tau_cs, residual
+                    &Ans, Ads, Aws, tau_cs, residual, &
+                    &beta_nml
 
   namelist /runctl/ lresume, use_shortwave_radiation_TOA, use_mask, &
                     &debug_switch, &
@@ -81,6 +85,7 @@ contains
     write(*,*) "shortwave_radiation_TOA_varname:",shortwave_radiation_TOA_varname
     write(*,*) "emissivity_varname:",emissivity_varname
     write(*,*) "transmissivity_varname:",transmissivity_varname
+    write(*,*) "windvelocity_varname:",windvelocity_varname ! LA 2023-08-22
     write(*,*) "mapping_varname:",mapping_varname
     write(*,*) "longitude_varname:",longitude_varname
     write(*,*) "latitude_varname:",latitude_varname
