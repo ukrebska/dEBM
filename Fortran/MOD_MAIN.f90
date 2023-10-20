@@ -307,7 +307,7 @@ SUBROUTINE dEBM_core(tempm, swdm, swd_TOAm, emissm, clcov, uvm, ppm, tmpSNH, las
       !  determine surface type (Krebs-Kanzow et al 2020, Figure 3)
       old_wet  = (wet_snow .AND. (PREFRws < (MELTws + RAIN(:,:,month))))
       new_snow = (MELTns <= SNOW(:,:,month))
-      dry_snow = ((.NOT.new_snow) .AND. (PREFRds >= (MELTds + RAIN(:,:,month))) .AND. (.NOT.old_wet))
+      dry_snow = ((.NOT.new_snow) .AND. (((temp <0) .AND. (snh_est>20)) .OR. PREFRds >= (MELTds + RAIN(:,:,month))) .AND. (.NOT.old_wet))
       wet_snow = ((.NOT.new_snow) .AND. ((.NOT.dry_snow) .OR. (old_wet)))
       if (debug_switch) then
         write(*,*) "wet_snow",wet_snow(debug_lon, debug_lat)
