@@ -25,6 +25,7 @@ MODULE MOD_PRE
   logical :: lresume, use_shortwave_radiation_TOA, debug_switch, use_mask
   integer :: debug_lon, debug_lat, debug_mon, debug_year
   integer :: hydmth_str
+  real(kind=WP) :: beta_nml = 0.0_WP
 
 contains
 
@@ -52,7 +53,8 @@ contains
                     &mapping_varname,&
                     &longitude_varname, latitude_varname, time_varname,&
                     &hydmth_str, stddev, obliquity, cloud_bias, &
-                    &Ans, Ads, Aws, tau_cs, residual
+                    &Ans, Ads, Aws, tau_cs, residual, &
+                    &beta_nml
 
   namelist /runctl/ lresume, use_shortwave_radiation_TOA, use_mask, &
                     &debug_switch, &

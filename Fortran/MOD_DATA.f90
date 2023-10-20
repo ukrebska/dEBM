@@ -38,6 +38,7 @@ MODULE MOD_DATA
   integer			:: mlen, nlen
   integer			:: istart(3), icount(3)
   integer 		:: i, j, k
+  logical       :: lwind_given = .false.
 
 contains
 
@@ -62,6 +63,9 @@ contains
     ! ************************************************************************
     implicit none
     include 'netcdf.inc'
+  
+    character*50  :: var_name
+    integer       :: nvars
 
     ! open file
     status = nf_open(trim(filename_in), nf_nowrite, ncid)
@@ -69,6 +73,20 @@ contains
       print*,'ERROR: CANNOT READ init_data FILE CORRECTLY !!!!!'
       print*,'Error in opening netcdf file'//trim(filename_in)
       call handle_err(status)
+    end if
+
+    status = nf_inq_nvars(ncid, nvars)
+    do i = 1, nvars
+       status = nf_inq_varname(ncid, i, var_name)
+       if (var_name == windvelocity_varname) then
+         lwind_given = .true.
+         write(*,*) "Wind velocity is given in input file!"
+         exit
+       end if
+    end do
+    if (.not. lwind_given) then
+       write(*,*) "No wind velocity is given in input file!"
+       write(*,*) "windvelocity1 is still allocated and set to all zero!"
     end if
 
     ! get dimension x,y,t & lon,lat
@@ -94,7 +112,7 @@ contains
     if (debug_switch) then
       if ((debug_lon>xlen) .OR. (debug_lat>ylen)) then
         write(*,*) "debug lon or lat is out of range.."
-        write(*,*) "plz turn of debug option by set debug_switch=.false."
+        write(*,*) "plz turn off debug option by set debug_switch=.false."
         debug_switch=.false.
       end if
     end if
@@ -519,17 +537,22 @@ contains
       real(kind=WP), dimension(:,:,:), allocatable :: windvelocity
 
       ! read
-      status = nf_inq_varid(ncid, windvelocity_varname, varid)
-      if (status .ne. nf_noerr) then
-         write(*,*) 'error by getting varid for ',trim(windvelocity_varname)
-         call handle_err(status)
+      if (lwind_given) then
+        status = nf_inq_varid(ncid, windvelocity_varname, varid)
+        if (status .ne. nf_noerr) then
+           write(*,*) 'error by getting varid for ',trim(windvelocity_varname)
+           call handle_err(status)
+        end if
+        allocate (windvelocity(xlen, ylen, tlen))
+        icount= (/xlen,ylen,1/)
+        do k = 1, tlen
+          istart = (/1,1,k/)
+          status=nf_get_vara_double(ncid,varid,istart,icount,windvelocity(:,:,k))
+        end do
+      else
+        allocate (windvelocity(xlen, ylen, tlen))
+        windvelocity = 0.0_WP
       end if
-      allocate (windvelocity(xlen, ylen, tlen))
-      icount= (/xlen,ylen,1/)
-      do k = 1, tlen
-        istart = (/1,1,k/)
-        status=nf_get_vara_double(ncid,varid,istart,icount,windvelocity(:,:,k))
-      end do
 
       ! reshape
       allocate (windvelocity1(xlen,ylen,mlen,nlen))
